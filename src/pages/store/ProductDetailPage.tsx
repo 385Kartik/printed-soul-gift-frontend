@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import {
@@ -7,16 +7,22 @@ import {
   Zap,
   Truck,
   ShieldCheck,
-  RotateCcw,
   Sparkles,
   Upload,
   CheckCircle2,
   Check,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   Loader2,
   Package,
   Heart,
-  Share2,
+  Eye,
+  Flame,
+  Gift,
+  MessageSquare,
+  Plus,
+  Minus,
 } from "lucide-react"
 import { catalogApi, reviewApi, uploadApi } from "../../lib/api"
 import { formatPrice, getImageUrl } from "../../lib/utils"
@@ -25,6 +31,15 @@ import { useWishlist } from "../../context/WishlistContext"
 import { useAuth } from "../../context/AuthContext"
 import { SEO } from "../../components/ui/SEO"
 
+interface SelectedAddonState {
+  addonId: string
+  title: string
+  variantName: string
+  price: number
+  message?: string
+  requiresMessage?: boolean
+}
+
 export function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
@@ -32,29 +47,63 @@ export function ProductDetailPage() {
   const { isInWishlist, toggleWishlist } = useWishlist()
   const { isAuthenticated, openAuthModal } = useAuth()
 
+  // Gallery
   const [activeImageIdx, setActiveImageIdx] = useState(0)
+
+  // Quantity & Personalization
   const [quantity, setQuantity] = useState(1)
   const [customText, setCustomText] = useState("")
   const [customImage, setCustomImage] = useState("")
   const [uploadingImage, setUploadingImage] = useState(false)
   const [added, setAdded] = useState(false)
 
-  // Review Form
+  // Selected Tier
+  const [selectedTierIndex, setSelectedTierIndex] = useState(0)
+
+  // Selected Addons: map of addonId -> SelectedAddonState
+  const [selectedAddonsMap, setSelectedAddonsMap] = useState<Record<string, SelectedAddonState>>({})
+  // Variant dropdown selection per addon: map of addonId -> variantName
+  const [selectedVariantsMap, setSelectedVariantsMap] = useState<Record<string, string>>({})
+
+  // Dynamic Viewer Counter (Giftana CRO feature)
+  const [viewersCount, setViewersCount] = useState(12)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // fluctuate smoothly between 8 and 18 viewers
+      setViewersCount((prev) => {
+        const delta = Math.random() > 0.5 ? 1 : -1
+        const next = prev + delta
+        return next < 7 ? 8 : next > 20 ? 17 : next
+      })
+    }, 4500)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Review Form Modal
   const [showReviewModal, setShowReviewModal] = useState(false)
   const [reviewRating, setReviewRating] = useState(5)
   const [reviewTitle, setReviewTitle] = useState("")
   const [reviewComment, setReviewComment] = useState("")
   const [submittingReview, setSubmittingReview] = useState(false)
 
+  // 1. Fetch Product
   const { data: productData, isLoading } = useQuery({
     queryKey: ["product", slug],
     queryFn: () => catalogApi.getProductBySlug(slug!),
     enabled: !!slug,
   })
-
   const product = productData?.data?.data
   const isWishlisted = product ? isInWishlist(product._id) : false
 
+  // 2. Fetch Applicable Addons for this product
+  const { data: addonsData } = useQuery({
+    queryKey: ["addons-product", product?._id],
+    queryFn: () => catalogApi.getAddonsForProduct(product._id),
+    enabled: !!product?._id,
+  })
+  const addons: any[] = addonsData?.data?.data || []
+
+  // 3. Fetch Reviews
   const { data: reviewsData, refetch: refetchReviews } = useQuery({
     queryKey: ["reviews", product?._id],
     queryFn: () => reviewApi.getForProduct(product._id),
@@ -62,11 +111,143 @@ export function ProductDetailPage() {
   })
   const reviews = reviewsData?.data?.data || []
 
-  // Check if product actually supports personalization
+  // Tiers calculation (use product bulkPricingTiers if present, otherwise Giftana default 3 tiers)
+  const pricingTiers = useMemo(() => {
+    if (product?.bulkPricingTiers && product.bulkPricingTiers.length > 0) {
+      return product.bulkPricingTiers
+    }
+    return [
+      {
+        title: "Buy 1 Gift",
+        subtitle: "Standard price",
+        minQty: 1,
+        maxQty: 1,
+        discountPercent: 0,
+        badgeText: "",
+      },
+      {
+        title: "Buy 2 - 20 Gifts",
+        subtitle: "Best option",
+        minQty: 2,
+        maxQty: 20,
+        discountPercent: 45,
+        badgeText: "Save 45%",
+      },
+      {
+        title: "More than 21 Gifts",
+        subtitle: "Save more",
+        minQty: 21,
+        maxQty: 9999,
+        discountPercent: 48,
+        badgeText: "Save 48%",
+        isMostPopular: true,
+      },
+    ]
+  }, [product])
+
+  // Sync selected tier when quantity changes
+  useEffect(() => {
+    const matchingIdx = pricingTiers.findIndex(
+      (t: any) => quantity >= (t.minQty || 1) && quantity <= (t.maxQty || 9999)
+    )
+    if (matchingIdx !== -1 && matchingIdx !== selectedTierIndex) {
+      setSelectedTierIndex(matchingIdx)
+    }
+  }, [quantity, pricingTiers])
+
+  // Active Tier
+  const currentTier = pricingTiers[selectedTierIndex] || pricingTiers[0]
+
+  // Calculate Unit Price
+  const basePrice = product?.price || 0
+  const tierDiscount = currentTier?.discountPercent || 0
+  const unitPrice =
+    tierDiscount > 0 ? Math.round(basePrice * (1 - tierDiscount / 100)) : basePrice
+
+  // Calculate Addons Total
+  const selectedAddonsList = Object.values(selectedAddonsMap)
+  const addonsTotalPerUnit = selectedAddonsList.reduce((sum, a) => sum + (a.price || 0), 0)
+
+  // Overall Total
+  const grandTotal = unitPrice * quantity + addonsTotalPerUnit * quantity
+
+  // Check personalization
   const isPersonalizable = Boolean(product?.isPersonalizable)
   const allowCustomImage = Boolean(product?.allowCustomImageUpload)
 
-  // Image Upload for Gift Customization
+  // Click on a Tier Radio Card
+  const handleSelectTier = (idx: number) => {
+    setSelectedTierIndex(idx)
+    const tier = pricingTiers[idx]
+    if (tier) {
+      if (quantity < tier.minQty || quantity > tier.maxQty) {
+        setQuantity(tier.minQty)
+      }
+    }
+  }
+
+  // Toggle Addon Selection
+  const handleToggleAddon = (addon: any) => {
+    const existing = selectedAddonsMap[addon._id]
+    if (existing) {
+      setSelectedAddonsMap((prev) => {
+        const next = { ...prev }
+        delete next[addon._id]
+        return next
+      })
+    } else {
+      const variants = addon.variants || []
+      const chosenVariantName = selectedVariantsMap[addon._id] || variants[0]?.name || "Standard"
+      const chosenVariant = variants.find((v: any) => v.name === chosenVariantName) || variants[0]
+      const price = chosenVariant?.price || 0
+
+      setSelectedAddonsMap((prev) => ({
+        ...prev,
+        [addon._id]: {
+          addonId: addon._id,
+          title: addon.title,
+          variantName: chosenVariantName,
+          price,
+          message: "",
+          requiresMessage: Boolean(addon.requiresMessage),
+        },
+      }))
+    }
+  }
+
+  // Change Addon Variant
+  const handleChangeVariant = (addon: any, variantName: string) => {
+    setSelectedVariantsMap((prev) => ({ ...prev, [addon._id]: variantName }))
+    const chosenVariant = (addon.variants || []).find((v: any) => v.name === variantName)
+    const price = chosenVariant?.price || 0
+
+    if (selectedAddonsMap[addon._id]) {
+      setSelectedAddonsMap((prev) => ({
+        ...prev,
+        [addon._id]: {
+          ...prev[addon._id],
+          variantName,
+          price,
+        },
+      }))
+    }
+  }
+
+  // Update greeting message on an addon
+  const handleUpdateAddonMessage = (addonId: string, message: string) => {
+    setSelectedAddonsMap((prev) => {
+      if (!prev[addonId]) return prev
+      return {
+        ...prev,
+        [addonId]: {
+          ...prev[addonId],
+          message,
+        },
+      }
+    })
+  }
+
+  // Image Upload
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -81,16 +262,42 @@ export function ProductDetailPage() {
     }
   }
 
+  // Construct Add to Cart Payload
+  const prepareCartPayload = () => {
+    const selectedTierPayload = {
+      tierTitle: currentTier.title,
+      unitPrice,
+      discountPercent: tierDiscount,
+    }
+    const selectedAddonsPayload = Object.values(selectedAddonsMap).map((a) => ({
+      addonId: a.addonId,
+      title: a.title,
+      variantName: a.variantName,
+      price: a.price,
+      message: a.message?.trim() || undefined,
+    }))
+
+    return {
+      selectedTierPayload,
+      selectedAddonsPayload,
+    }
+  }
+
   const handleAddToCart = async () => {
     if (isPersonalizable && !customText.trim()) {
       alert("Please enter the name or custom text for engraving.")
       return
     }
+
+    const { selectedTierPayload, selectedAddonsPayload } = prepareCartPayload()
+
     await addToCart(
       product._id,
       quantity,
       isPersonalizable ? customText.trim() : undefined,
-      isPersonalizable ? customImage : undefined
+      isPersonalizable ? customImage : undefined,
+      selectedTierPayload,
+      selectedAddonsPayload
     )
     setAdded(true)
     setTimeout(() => setAdded(false), 2500)
@@ -101,11 +308,16 @@ export function ProductDetailPage() {
       alert("Please enter the name or custom text for engraving.")
       return
     }
+
+    const { selectedTierPayload, selectedAddonsPayload } = prepareCartPayload()
+
     await addToCart(
       product._id,
       quantity,
       isPersonalizable ? customText.trim() : undefined,
-      isPersonalizable ? customImage : undefined
+      isPersonalizable ? customImage : undefined,
+      selectedTierPayload,
+      selectedAddonsPayload
     )
     navigate("/checkout")
   }
@@ -135,8 +347,8 @@ export function ProductDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-24 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-amber-600 animate-spin" />
+      <div className="max-w-7xl mx-auto px-4 py-28 flex items-center justify-center">
+        <Loader2 className="w-9 h-9 text-amber-600 animate-spin" />
       </div>
     )
   }
@@ -157,13 +369,13 @@ export function ProductDetailPage() {
   }
 
   const images = product.images && product.images.length > 0 ? product.images : [""]
-  const discount =
-    product.comparePrice && product.comparePrice > product.price
-      ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
-      : 0
+  const compareDiscount =
+    product.comparePrice && product.comparePrice > unitPrice
+      ? Math.round(((product.comparePrice - unitPrice) / product.comparePrice) * 100)
+      : tierDiscount
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-10">
       <SEO title={`${product.name} — Printed Soul Gift`} description={product.description} />
 
       {/* Breadcrumbs */}
@@ -179,22 +391,52 @@ export function ProductDetailPage() {
           {product.category?.name || "Catalog"}
         </Link>
         <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
-        <span className="text-zinc-900 font-medium truncate max-w-[240px]">{product.name}</span>
+        <span className="text-zinc-900 font-medium truncate max-w-[260px]">{product.name}</span>
       </nav>
 
-      {/* Product Detail Main Container */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-start">
-        {/* Gallery Column */}
-        <div className="space-y-4">
-          <div className="aspect-square rounded-2xl overflow-hidden bg-zinc-50 border border-zinc-200/70 relative">
+      {/* Main Grid: Gallery (Left) & Configuration / Buy (Right) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+        
+        {/* ═════════════════════════════════════════════════════════
+            LEFT COLUMN: GALLERY WITH VERTICAL THUMBNAIL STRIP
+           ═════════════════════════════════════════════════════════ */}
+        <div className="lg:col-span-6 flex flex-col-reverse md:flex-row gap-4 items-start sticky top-24">
+          {/* Vertical Thumbnail Strip (Desktop/Tablet) */}
+          {images.length > 1 && (
+            <div className="flex md:flex-col gap-2.5 overflow-x-auto md:overflow-y-auto max-h-[520px] scrollbar-thin scrollbar-thumb-zinc-200 shrink-0 w-full md:w-20 pb-2 md:pb-0">
+              {images.map((img: string, idx: number) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveImageIdx(idx)}
+                  className={`relative w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden border-2 transition-all shrink-0 bg-zinc-50 ${
+                    activeImageIdx === idx
+                      ? "border-amber-600 shadow-sm ring-1 ring-amber-500"
+                      : "border-zinc-200 hover:border-zinc-400 opacity-80 hover:opacity-100"
+                  }`}
+                >
+                  <img
+                    src={getImageUrl(img)}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Main Showcase Image */}
+          <div className="flex-1 w-full aspect-square rounded-2xl overflow-hidden bg-zinc-50 border border-zinc-200 relative group shadow-sm">
             <img
               src={getImageUrl(images[activeImageIdx])}
               alt={product.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
-            {discount > 0 && (
-              <span className="absolute top-3 left-3 bg-rose-600 text-white text-[11px] font-bold px-2 py-1 rounded shadow-sm">
-                SAVE {discount}%
+
+            {/* Discount Badge */}
+            {compareDiscount > 0 && (
+              <span className="absolute top-3.5 left-3.5 bg-gradient-to-r from-amber-600 to-rose-600 text-white text-[11px] font-black px-2.5 py-1 rounded-md shadow-md tracking-wider">
+                SAVE {compareDiscount}%
               </span>
             )}
 
@@ -202,7 +444,7 @@ export function ProductDetailPage() {
             <button
               type="button"
               onClick={() => toggleWishlist(product)}
-              className="absolute top-3 right-3 w-10 h-10 rounded-full bg-white/90 hover:bg-white text-zinc-700 hover:text-rose-600 flex items-center justify-center shadow-md transition-all cursor-pointer z-10"
+              className="absolute top-3.5 right-3.5 w-10 h-10 rounded-full bg-white/95 hover:bg-white text-zinc-700 hover:text-rose-600 flex items-center justify-center shadow-md transition-all cursor-pointer z-10 active:scale-90"
               title={isWishlisted ? "Remove from Wishlist" : "Save to Wishlist"}
             >
               <Heart
@@ -212,91 +454,318 @@ export function ProductDetailPage() {
               />
             </button>
           </div>
-
-          {/* Thumbnails */}
-          {images.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto pb-1">
-              {images.map((img: string, idx: number) => (
-                <button
-                  key={idx}
-                  onClick={() => setActiveImageIdx(idx)}
-                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 shrink-0 transition-all ${
-                    activeImageIdx === idx
-                      ? "border-amber-600 shadow-sm"
-                      : "border-zinc-200 hover:border-zinc-400 opacity-80"
-                  }`}
-                >
-                  <img src={getImageUrl(img)} alt="" className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
-        {/* Product Purchase Column */}
-        <div className="space-y-6">
+        {/* ═════════════════════════════════════════════════════════
+            RIGHT COLUMN: DETAILS, TIERED PRICING & ADDONS (Giftana Style)
+           ═════════════════════════════════════════════════════════ */}
+        <div className="lg:col-span-6 space-y-6">
+          {/* Header & Badges */}
           <div>
             {product.category?.name && (
-              <span className="text-[11px] font-bold text-amber-700 uppercase tracking-wider block mb-1">
+              <span className="text-[11px] font-extrabold text-amber-700 uppercase tracking-widest block mb-1">
                 {product.category.name}
               </span>
             )}
-            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-zinc-950 leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-serif font-black text-zinc-950 leading-tight">
               {product.name}
             </h1>
 
-            {/* Ratings & Stock Status */}
-            <div className="flex items-center gap-3 mt-3">
-              <div className="flex items-center gap-1 bg-amber-50 text-zinc-900 px-2 py-0.5 rounded text-xs font-semibold border border-amber-200">
+            {/* Rating & In-Stock Status */}
+            <div className="flex items-center gap-3 mt-2.5 flex-wrap">
+              <div className="flex items-center gap-1 bg-amber-50 text-zinc-900 px-2 py-0.5 rounded text-xs font-bold border border-amber-200">
                 <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                 <span>{product.ratings?.average ? Number(product.ratings.average).toFixed(1) : "4.9"}</span>
               </div>
               <span className="text-xs text-zinc-500">
-                ({reviews.length > 0 ? reviews.length : "38"} verified reviews)
+                ({reviews.length > 0 ? reviews.length : "42"} verified reviews)
               </span>
               <span className="text-zinc-300">•</span>
-              <span className="text-xs font-medium text-emerald-700 flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> In Stock
+              <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5" /> In Stock &amp; Ready to Ship
               </span>
             </div>
           </div>
 
-          {/* Price Box */}
-          <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200/80">
-            <div className="flex items-baseline gap-3">
-              <span className="text-3xl font-bold text-zinc-950 font-sans">
-                {formatPrice(product.price)}
+          {/* Pricing Row with "FREE Name Engraving" Pill */}
+          <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200/90 space-y-1">
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <span className="text-3xl font-black text-zinc-950 font-sans tracking-tight">
+                {formatPrice(unitPrice)}
               </span>
-              {product.comparePrice && product.comparePrice > product.price && (
-                <>
-                  <span className="text-base text-zinc-400 line-through">
-                    {formatPrice(product.comparePrice)}
-                  </span>
-                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                    Save {formatPrice(product.comparePrice - product.price)}
-                  </span>
-                </>
+              {product.comparePrice && product.comparePrice > unitPrice && (
+                <span className="text-base text-zinc-400 line-through">
+                  {formatPrice(product.comparePrice)}
+                </span>
+              )}
+              {isPersonalizable && (
+                <span className="text-xs font-bold text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-amber-600" /> FREE Name Engraving
+                </span>
               )}
             </div>
-            <p className="text-[11px] text-zinc-500 mt-1">
-              Inclusive of all GST taxes. Free express shipping on orders over ₹500.
+            <p className="text-[11px] text-zinc-500">
+              Inclusive of all GST taxes. Free express shipping on all orders over ₹500.
             </p>
           </div>
 
-          {/* Description */}
-          <div className="text-xs text-zinc-700 leading-relaxed">
-            <p>{product.description}</p>
+          {/* ═════════════════════════════════════════════════════════
+              CRO URGENCY STRIPS: VIEWER COUNT & STOCK URGENCY BAR
+             ═════════════════════════════════════════════════════════ */}
+          <div className="space-y-2.5 pt-1">
+            {/* Viewer Counter */}
+            <div className="flex items-center gap-2 text-xs font-semibold text-zinc-700">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-600"></span>
+              </span>
+              <Eye className="w-4 h-4 text-zinc-500 ml-0.5" />
+              <span>
+                <strong className="text-zinc-900">{viewersCount} customers</strong> are viewing this gift right now
+              </span>
+            </div>
+
+            {/* Stock Urgency Bar */}
+            <div className="p-3 rounded-xl bg-orange-50/70 border border-orange-200/80 space-y-1.5">
+              <div className="flex items-center justify-between text-xs font-bold text-orange-900">
+                <span className="flex items-center gap-1.5">
+                  <Flame className="w-4 h-4 text-orange-600 fill-orange-600" />
+                  <span>HURRY! ONLY A FEW LEFT IN STOCK</span>
+                </span>
+                <span className="text-[11px] text-orange-700 font-semibold">6 Units Left</span>
+              </div>
+              <div className="w-full bg-orange-200/60 rounded-full h-2 overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-orange-500 to-rose-600 h-full rounded-full transition-all duration-500"
+                  style={{ width: "24%" }}
+                />
+              </div>
+            </div>
           </div>
 
           {/* ═════════════════════════════════════════════════════════
-              GIFT PERSONALIZATION BOX (ONLY SHOWN IF isPersonalizable)
+              1. "BUY MORE, SAVE MORE" BULK TIERED PRICING (Giftana Style)
+             ═════════════════════════════════════════════════════════ */}
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-extrabold text-zinc-900 uppercase tracking-wide flex items-center gap-1.5">
+                <span>Buy More, Save More</span>
+              </h3>
+              <span className="text-[11px] font-semibold text-amber-700">Volume Discounts</span>
+            </div>
+
+            <div className="space-y-2.5">
+              {pricingTiers.map((tier: any, idx: number) => {
+                const isSelected = selectedTierIndex === idx
+                const tierDisc = tier.discountPercent || 0
+                const tierUnitPrice =
+                  tierDisc > 0 ? Math.round(basePrice * (1 - tierDisc / 100)) : basePrice
+
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => handleSelectTier(idx)}
+                    className={`relative p-3.5 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between ${
+                      isSelected
+                        ? "border-amber-600 bg-amber-50/40 shadow-xs"
+                        : "border-zinc-200 hover:border-zinc-300 bg-white"
+                    }`}
+                  >
+                    {/* Left: Radio & Title */}
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${
+                          isSelected
+                            ? "border-amber-600 bg-amber-600 text-white"
+                            : "border-zinc-300 bg-white"
+                        }`}
+                      >
+                        {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-xs sm:text-sm text-zinc-950">
+                            {tier.title}
+                          </span>
+                          {tier.badgeText && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-200">
+                              {tier.badgeText}
+                            </span>
+                          )}
+                          {tier.isMostPopular && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-zinc-900 text-white shadow-2xs">
+                              ⭐ Most popular
+                            </span>
+                          )}
+                        </div>
+                        {tier.subtitle && (
+                          <p className="text-[11px] text-zinc-500 mt-0.5">{tier.subtitle}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right: Calculated Price */}
+                    <div className="text-right">
+                      <span className="font-sans font-black text-sm sm:text-base text-zinc-950 block">
+                        {formatPrice(tierUnitPrice)}
+                      </span>
+                      <span className="text-[10px] text-zinc-400 font-medium">/ gift piece</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* ═════════════════════════════════════════════════════════
+              2. "MAKE IT EXTRA SPECIAL ✉️ 🍫 🎁" ADD-ONS SYSTEM
+             ═════════════════════════════════════════════════════════ */}
+          {addons.length > 0 && (
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-amber-50/70 to-rose-50/40 border border-amber-200/80 space-y-4">
+              <div>
+                <h3 className="text-sm font-extrabold text-zinc-950 flex items-center gap-2">
+                  <Gift className="w-4 h-4 text-amber-700" />
+                  <span>Make it extra special ✉️ 🍫 🎁</span>
+                </h3>
+                <p className="text-[11px] text-zinc-600 mt-0.5">
+                  Enhance this gift with greeting cards, premium chocolates, or luxury wrap.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                {addons.map((addon: any) => {
+                  const isSelected = Boolean(selectedAddonsMap[addon._id])
+                  const variants = addon.variants || []
+                  const currentSelectedVariant =
+                    selectedVariantsMap[addon._id] || variants[0]?.name || "Standard"
+                  const activeVariantObj =
+                    variants.find((v: any) => v.name === currentSelectedVariant) || variants[0]
+                  const addonPrice = activeVariantObj?.price || 0
+
+                  return (
+                    <div
+                      key={addon._id}
+                      className={`p-3.5 rounded-xl border bg-white transition-all space-y-3 ${
+                        isSelected
+                          ? "border-amber-500 ring-1 ring-amber-400/50 shadow-sm"
+                          : "border-zinc-200 hover:border-zinc-300"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
+                        {/* Title & Subtitle */}
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          {addon.image ? (
+                            <img
+                              src={getImageUrl(addon.image)}
+                              alt={addon.title}
+                              className="w-10 h-10 rounded-lg object-cover border border-zinc-200 shrink-0"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-amber-100/80 text-amber-800 flex items-center justify-center shrink-0 text-base">
+                              {addon.title.toLowerCase().includes("chocolate")
+                                ? "🍫"
+                                : addon.title.toLowerCase().includes("card")
+                                ? "✉️"
+                                : "🎁"}
+                            </div>
+                          )}
+
+                          <div className="min-w-0">
+                            <h4 className="font-bold text-xs text-zinc-900 truncate">
+                              {addon.title}
+                            </h4>
+                            {addon.subtitle && (
+                              <p className="text-[10px] text-zinc-500 truncate">{addon.subtitle}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Variant Selector (if variants exist) & Price & Action */}
+                        <div className="flex items-center gap-3 shrink-0 ml-auto">
+                          {variants.length > 1 && (
+                            <select
+                              value={currentSelectedVariant}
+                              onChange={(e) => handleChangeVariant(addon, e.target.value)}
+                              className="px-2 py-1 text-xs rounded-lg border border-zinc-300 bg-white font-medium text-zinc-800 focus:outline-none focus:border-amber-600"
+                            >
+                              {variants.map((v: any, vIdx: number) => (
+                                <option key={vIdx} value={v.name}>
+                                  {v.name} (+₹{v.price})
+                                </option>
+                              ))}
+                            </select>
+                          )}
+
+                          <span className="font-black text-xs text-zinc-900">
+                            +{formatPrice(addonPrice)}
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() => handleToggleAddon(addon)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                              isSelected
+                                ? "bg-emerald-700 text-white shadow-2xs"
+                                : "bg-zinc-900 hover:bg-black text-white"
+                            }`}
+                          >
+                            {isSelected ? (
+                              <>
+                                <Check className="w-3.5 h-3.5" />
+                                <span>Added</span>
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>Add</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* ═════════════════════════════════════════════════
+                          DYNAMIC GREETING MESSAGE INPUT BOX
+                          (Shown if addon.requiresMessage AND isSelected)
+                         ═════════════════════════════════════════════════ */}
+                      {addon.requiresMessage && isSelected && (
+                        <div className="pt-2.5 border-t border-amber-200/80 animate-in fade-in space-y-1.5">
+                          <label className="block text-[11px] font-bold text-amber-950 flex items-center gap-1.5">
+                            <MessageSquare className="w-3.5 h-3.5 text-amber-700" />
+                            <span>Write A Message On {addon.title}:</span>
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={selectedAddonsMap[addon._id]?.message || ""}
+                            onChange={(e) => handleUpdateAddonMessage(addon._id, e.target.value)}
+                            placeholder={
+                              addon.messagePlaceholder ||
+                              "Write your heartfelt personal greeting message here..."
+                            }
+                            className="w-full px-3 py-2 rounded-lg border border-amber-300 bg-amber-50/30 text-xs font-medium text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 resize-none"
+                          />
+                          <p className="text-[10px] text-zinc-500 italic">
+                            This message will be beautifully printed inside the {addon.title.toLowerCase()}!
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ═════════════════════════════════════════════════════════
+              GIFT PERSONALIZATION BOX (Engraved Name / Photo)
              ═════════════════════════════════════════════════════════ */}
           {isPersonalizable && (
-            <div className="p-5 rounded-2xl bg-amber-50/50 border border-amber-200 space-y-4">
+            <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-4">
               <div className="flex items-center gap-2 text-amber-950">
                 <Sparkles className="w-4 h-4 text-amber-600" />
-                <h3 className="text-xs font-bold uppercase tracking-wide">
-                  Custom Engraving &amp; Personalization
+                <h3 className="text-xs font-bold uppercase tracking-wider">
+                  Laser Engraving Personalization
                 </h3>
               </div>
 
@@ -314,7 +783,7 @@ export function ProductDetailPage() {
                   className="w-full px-3.5 py-2.5 rounded-lg border border-amber-300 bg-white text-xs font-medium text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600"
                 />
                 <span className="text-[10px] text-zinc-500 block mt-1">
-                  Will be laser engraved precisely as entered.
+                  Precision laser engraved permanently on the gift.
                 </span>
 
                 {/* Live Laser Engraving Preview */}
@@ -324,7 +793,7 @@ export function ProductDetailPage() {
                       <Sparkles className="w-3.5 h-3.5 text-amber-600" />
                       <span>Engraving Preview:</span>
                     </span>
-                    <span className="font-serif font-black text-amber-950 tracking-wider text-sm italic bg-white/90 px-3 py-1 rounded-md border border-amber-300 shadow-2xs">
+                    <span className="font-serif font-black text-amber-950 tracking-wider text-sm italic bg-white/95 px-3 py-1 rounded-md border border-amber-300 shadow-2xs">
                       {customText.trim()}
                     </span>
                   </div>
@@ -359,36 +828,52 @@ export function ProductDetailPage() {
             </div>
           )}
 
-          {/* Quantity & CTAs */}
-          <div className="space-y-3 pt-2">
-            <div className="flex items-center gap-3">
-              {/* Quantity */}
-              <div className="flex items-center border border-zinc-300 rounded-xl bg-white p-1">
-                <button
-                  type="button"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-3 py-1.5 text-zinc-600 hover:text-zinc-950 font-bold text-sm"
-                >
-                  -
-                </button>
-                <span className="px-3 font-semibold text-xs text-zinc-900">{quantity}</span>
-                <button
-                  type="button"
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="px-3 py-1.5 text-zinc-600 hover:text-zinc-950 font-bold text-sm"
-                >
-                  +
-                </button>
+          {/* ═════════════════════════════════════════════════════════
+              QUANTITY SELECTOR & TOTAL CALCULATION & CTAS
+             ═════════════════════════════════════════════════════════ */}
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between p-3.5 rounded-xl bg-zinc-50 border border-zinc-200">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-zinc-700">Quantity:</span>
+                <div className="flex items-center border border-zinc-300 rounded-lg bg-white p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="p-1.5 text-zinc-600 hover:text-zinc-950 font-bold transition-colors"
+                  >
+                    <Minus className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="px-3 font-black text-xs text-zinc-900 min-w-[28px] text-center">
+                    {quantity}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="p-1.5 text-zinc-600 hover:text-zinc-950 font-bold transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
 
-              {/* Add to Cart */}
+              {/* Dynamic Grand Total */}
+              <div className="text-right">
+                <span className="text-[10px] text-zinc-500 font-medium block">Total Payable</span>
+                <span className="text-lg font-black text-zinc-950 font-sans">
+                  {formatPrice(grandTotal)}
+                </span>
+              </div>
+            </div>
+
+            {/* CTAs */}
+            <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={handleAddToCart}
-                className={`flex-1 py-3 px-6 rounded-xl font-semibold text-xs sm:text-sm transition-colors flex items-center justify-center gap-2 shadow-sm ${
+                className={`flex-1 py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer ${
                   added
                     ? "bg-emerald-700 text-white"
-                    : "bg-zinc-950 hover:bg-zinc-800 text-white cursor-pointer"
+                    : "bg-zinc-950 hover:bg-black text-white active:scale-98"
                 }`}
               >
                 {added ? (
@@ -402,11 +887,10 @@ export function ProductDetailPage() {
                 )}
               </button>
 
-              {/* Wishlist Button */}
               <button
                 type="button"
                 onClick={() => toggleWishlist(product)}
-                className={`px-4 py-3 rounded-xl border transition-all flex items-center justify-center cursor-pointer ${
+                className={`p-3.5 rounded-xl border transition-all flex items-center justify-center cursor-pointer ${
                   isWishlisted
                     ? "bg-rose-50 border-rose-200 text-rose-600"
                     : "bg-white border-zinc-200 hover:border-zinc-400 text-zinc-700 hover:text-rose-600"
@@ -419,41 +903,43 @@ export function ProductDetailPage() {
               </button>
             </div>
 
-            {/* Buy Now Button */}
             <button
               type="button"
               onClick={handleBuyNow}
-              className="w-full py-3 px-6 rounded-xl font-semibold text-xs sm:text-sm bg-amber-600 hover:bg-amber-700 text-white shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white shadow-md active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <Zap className="w-4 h-4 fill-current" />
               <span>Buy Now • Fast Checkout</span>
             </button>
           </div>
 
-          {/* Delivery Reassurance (Without pincode form) */}
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center gap-3 text-xs text-slate-700">
-            <Truck className="w-4 h-4 text-amber-700 shrink-0" />
-            <span>
-              <strong>Fast Dispatch:</strong> Ships in 24–48 hours across India via{" "}
-              <strong>Delhivery Express</strong>.
-            </span>
-          </div>
-
-          {/* Trust Guarantees */}
-          <div className="grid grid-cols-2 gap-3 pt-2 text-xs text-zinc-600 border-t border-zinc-100">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>100% Secure PayU Payments</span>
+          {/* Delivery & Trust Reassurances */}
+          <div className="space-y-2 pt-2">
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center gap-3 text-xs text-slate-700">
+              <Truck className="w-4 h-4 text-amber-700 shrink-0" />
+              <span>
+                <strong>Fast Dispatch:</strong> Ships in 24–48 hours across India via{" "}
+                <strong>Delhivery Express</strong>.
+              </span>
             </div>
-            <div className="flex items-center gap-2">
-              <Package className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Premium Luxury Packaging</span>
+
+            <div className="grid grid-cols-2 gap-3 pt-1 text-xs text-zinc-600">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>100% Safe PayU Checkout</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Package className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Luxury Hardbound Box</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Customer Reviews Section */}
+      {/* ═════════════════════════════════════════════════════════
+          CUSTOMER REVIEWS SECTION
+         ═════════════════════════════════════════════════════════ */}
       <section className="pt-10 border-t border-zinc-200 space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -574,7 +1060,7 @@ export function ProductDetailPage() {
       )}
 
       {/* ═════════════════════════════════════════════════════════
-          MOBILE STICKY BUY BAR (Flipkart / Amazon CRO Standard)
+          MOBILE STICKY BUY BAR WITH GRAND TOTAL
          ═════════════════════════════════════════════════════════ */}
       <div className="lg:hidden fixed bottom-14 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-zinc-200 p-2.5 flex items-center justify-between gap-3 shadow-2xl">
         <div className="flex items-center gap-2 min-w-0">
@@ -584,8 +1070,8 @@ export function ProductDetailPage() {
             className="w-10 h-10 rounded-lg object-cover border border-zinc-200 bg-zinc-50 shrink-0"
           />
           <div className="min-w-0">
-            <p className="font-bold text-xs text-zinc-900 truncate max-w-[120px]">{product.name}</p>
-            <p className="font-black text-sm text-zinc-950 font-sans">{formatPrice(product.price)}</p>
+            <p className="font-bold text-xs text-zinc-900 truncate max-w-[130px]">{product.name}</p>
+            <p className="font-black text-sm text-zinc-950 font-sans">{formatPrice(grandTotal)}</p>
           </div>
         </div>
 
@@ -599,7 +1085,7 @@ export function ProductDetailPage() {
           </button>
           <button
             onClick={handleBuyNow}
-            className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer"
+            className="px-4 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer"
           >
             <Zap className="w-3.5 h-3.5 fill-current" />
             <span>Buy Now</span>

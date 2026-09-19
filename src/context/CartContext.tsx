@@ -15,6 +15,18 @@ export interface CartItem {
   quantity: number
   customText?: string
   customImage?: string
+  selectedTier?: {
+    tierTitle: string
+    unitPrice: number
+    discountPercent: number
+  }
+  selectedAddons?: Array<{
+    addonId: string
+    title: string
+    variantName: string
+    price: number
+    message?: string
+  }>
 }
 
 interface CartContextType {
@@ -25,7 +37,24 @@ interface CartContextType {
   isCartOpen: boolean
   openCart: () => void
   closeCart: () => void
-  addToCart: (productId: string, quantity?: number, customText?: string, customImage?: string) => Promise<void>
+  addToCart: (
+    productId: string,
+    quantity?: number,
+    customText?: string,
+    customImage?: string,
+    selectedTier?: {
+      tierTitle: string
+      unitPrice: number
+      discountPercent: number
+    },
+    selectedAddons?: Array<{
+      addonId: string
+      title: string
+      variantName: string
+      price: number
+      message?: string
+    }>
+  ) => Promise<void>
   updateQuantity: (productId: string, quantity: number) => Promise<void>
   removeFromCart: (productId: string) => Promise<void>
   clearCart: () => Promise<void>
@@ -52,7 +81,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         try {
           const parsed = JSON.parse(local)
           setItems(parsed)
-          const total = parsed.reduce((sum: number, i: any) => sum + (i.product?.price || 0) * i.quantity, 0)
+          const total = parsed.reduce((sum: number, i: any) => {
+            const unit = i.selectedTier?.unitPrice ?? i.product?.price ?? 0
+            const addonsSum = (i.selectedAddons || []).reduce((aSum: number, a: any) => aSum + (a.price || 0), 0)
+            return sum + (unit * i.quantity) + (addonsSum * i.quantity)
+          }, 0)
           setTotalAmount(total)
         } catch {
           setItems([])
@@ -78,11 +111,35 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     refreshCart()
   }, [isAuthenticated])
 
-  const addToCart = async (productId: string, quantity = 1, customText?: string, customImage?: string) => {
+  const addToCart = async (
+    productId: string,
+    quantity = 1,
+    customText?: string,
+    customImage?: string,
+    selectedTier?: {
+      tierTitle: string
+      unitPrice: number
+      discountPercent: number
+    },
+    selectedAddons?: Array<{
+      addonId: string
+      title: string
+      variantName: string
+      price: number
+      message?: string
+    }>
+  ) => {
     setIsLoading(true)
     try {
       if (isAuthenticated) {
-        await cartApi.add({ productId, quantity, customText, customImage })
+        await cartApi.add({
+          productId,
+          quantity,
+          customText,
+          customImage,
+          selectedTier,
+          selectedAddons,
+        })
         await refreshCart()
       } else {
         // Guest cart

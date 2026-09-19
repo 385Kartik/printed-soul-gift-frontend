@@ -351,11 +351,28 @@ export function CheckoutPage() {
                     />
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-zinc-900 truncate">{i.product?.name}</p>
-                      {i.customText && (
-                        <p className="text-[10px] text-rose-600 truncate">"{i.customText}"</p>
+                      {i.selectedTier && (
+                        <p className="text-[10px] text-amber-700 font-semibold truncate">
+                          🏷️ {i.selectedTier.tierTitle} ({i.selectedTier.discountPercent}% off)
+                        </p>
                       )}
-                      <p className="text-zinc-500 text-[11px]">
-                        Qty: {i.quantity} × {formatPrice(i.product?.price)}
+                      {i.customText && (
+                        <p className="text-[10px] text-rose-600 truncate">✨ "{i.customText}"</p>
+                      )}
+                      {i.selectedAddons && i.selectedAddons.length > 0 && (
+                        <div className="mt-0.5 space-y-0.5">
+                          {i.selectedAddons.map((addon, aIdx) => (
+                            <div key={aIdx} className="text-[10px] text-zinc-600">
+                              <span>+ {addon.title} ({addon.variantName}): {formatPrice(addon.price)}</span>
+                              {addon.message && (
+                                <p className="italic text-amber-800 text-[9px] truncate">✉️ "{addon.message}"</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-zinc-500 text-[11px] mt-0.5">
+                        Qty: {i.quantity} × {formatPrice(i.selectedTier?.unitPrice ?? i.product?.price)}
                       </p>
                     </div>
                   </div>

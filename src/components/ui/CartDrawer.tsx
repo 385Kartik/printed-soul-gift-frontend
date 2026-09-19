@@ -98,6 +98,11 @@ export function CartDrawer() {
                 <div className="flex-1 min-w-0 flex flex-col justify-between">
                   <div>
                     <h4 className="font-bold text-xs text-zinc-900 line-clamp-2">{item.product?.name}</h4>
+                    {item.selectedTier && (
+                      <p className="text-[10px] font-semibold text-amber-700 mt-0.5">
+                        🏷️ {item.selectedTier.tierTitle} ({item.selectedTier.discountPercent}% off)
+                      </p>
+                    )}
                     {item.customText && (
                       <p className="text-[11px] text-rose-600 font-medium mt-0.5 truncate">
                         ✨ Engraved: "{item.customText}"
@@ -108,11 +113,27 @@ export function CartDrawer() {
                         📸 Custom Photo Uploaded
                       </p>
                     )}
+                    {item.selectedAddons && item.selectedAddons.length > 0 && (
+                      <div className="mt-1 space-y-0.5 border-t border-zinc-100 pt-1">
+                        {item.selectedAddons.map((addon, aIdx) => (
+                          <div key={aIdx} className="text-[10px] text-zinc-600 flex flex-col">
+                            <span className="font-medium text-zinc-800">
+                              + {addon.title} ({addon.variantName}): <strong className="text-zinc-900">{formatPrice(addon.price)}</strong>
+                            </span>
+                            {addon.message && (
+                              <span className="italic text-amber-800 pl-2 text-[9px] bg-amber-50/70 rounded px-1 py-0.5 mt-0.5">
+                                ✉️ "{addon.message}"
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between mt-2">
                     <span className="font-display font-extrabold text-sm text-zinc-900">
-                      {formatPrice(item.product?.price)}
+                      {formatPrice(item.selectedTier?.unitPrice ?? item.product?.price)}
                     </span>
 
                     {/* Quantity Controls */}

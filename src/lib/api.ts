@@ -59,13 +59,31 @@ export const catalogApi = {
   getBestSellers: () => api.get("/catalog/products/bestsellers"),
   getSimilar: (categoryId: string, currentProductId: string) =>
     api.get("/catalog/products/similar", { params: { categoryId, currentProductId } }),
+  getAddonsForProduct: (productId: string) =>
+    api.get(`/catalog/addons/product/${productId}`),
 }
 
 // ── Cart ──
 export const cartApi = {
   get: () => api.get("/cart"),
-  add: (data: { productId: string; quantity?: number; customText?: string; customImage?: string }) =>
-    api.post("/cart/add", data),
+  add: (data: {
+    productId: string
+    quantity?: number
+    customText?: string
+    customImage?: string
+    selectedTier?: {
+      tierTitle: string
+      unitPrice: number
+      discountPercent: number
+    }
+    selectedAddons?: Array<{
+      addonId: string
+      title: string
+      variantName: string
+      price: number
+      message?: string
+    }>
+  }) => api.post("/cart/add", data),
   update: (data: { productId: string; quantity: number }) => api.put("/cart/update", data),
   remove: (productId: string) => api.delete(`/cart/remove/${productId}`),
   clear: () => api.delete("/cart/clear"),
