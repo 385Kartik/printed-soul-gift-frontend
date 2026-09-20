@@ -33,7 +33,7 @@ import { useWishlist } from "../../context/WishlistContext"
 import { useAuth } from "../../context/AuthContext"
 import { SEO } from "../../components/ui/SEO"
 import { ImageZoomLens } from "../../components/store/ImageZoomLens"
-import { PersonalizationModal } from "../../components/store/PersonalizationModal"
+import { PersonalizationModal, ENGRAVING_FONTS } from "../../components/store/PersonalizationModal"
 
 interface SelectedAddonState {
   addonId: string
@@ -63,6 +63,8 @@ export function ProductDetailPage() {
 
   // Giftana Personalization Studio Modal
   const [showPersonalizeModal, setShowPersonalizeModal] = useState(false)
+  const [itemizedEngraving, setItemizedEngraving] = useState<Record<string, string>>({})
+  const [selectedFontClass, setSelectedFontClass] = useState<string>("font-lobster")
 
   // Selected Tier
   const [selectedTierIndex, setSelectedTierIndex] = useState(0)
@@ -323,6 +325,11 @@ export function ProductDetailPage() {
 
     // Sync inline state with modal selections
     setCustomText(data.engravingText)
+    setItemizedEngraving(data.itemizedEngraving || {})
+    if (data.font) {
+      const found = ENGRAVING_FONTS.find((f) => f.name === data.font || f.id === data.font)
+      if (found) setSelectedFontClass(found.cssClass)
+    }
     setQuantity(data.quantity)
 
     await addToCart(
@@ -438,14 +445,15 @@ export function ProductDetailPage() {
           
           {/* Main Showcase Gallery */}
           <div className="flex flex-col-reverse sm:flex-row gap-4 items-start">
-            {/* Vertical Thumbnail Strip */}
+            {/* Vertical Thumbnail Strip (No scrollbars, clean spacious layout) */}
             {images.length > 1 && (
-              <div className="flex sm:flex-col gap-2.5 overflow-x-auto sm:overflow-y-auto max-h-[580px] scrollbar-thin scrollbar-thumb-zinc-200 shrink-0 w-full sm:w-24 pb-2 sm:pb-0">
+              <div className="flex sm:flex-col gap-3 overflow-x-auto sm:overflow-y-auto max-h-[620px] shrink-0 w-full sm:w-28 p-1 sm:p-1.5 pb-2 sm:pb-1 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:overflow-x-hidden">
                 {images.map((img: string, idx: number) => (
                   <button
                     key={idx}
+                    type="button"
                     onClick={() => setActiveImageIdx(idx)}
-                    className={`relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 transition-all shrink-0 bg-zinc-50 ${
+                    className={`relative w-20 h-20 sm:w-[96px] sm:h-[96px] rounded-2xl overflow-hidden border-2 transition-all shrink-0 bg-zinc-50 cursor-pointer ${
                       activeImageIdx === idx
                         ? "border-amber-600 shadow-md ring-2 ring-amber-500/30 scale-[1.02]"
                         : "border-zinc-200 hover:border-zinc-400 opacity-80 hover:opacity-100"
@@ -469,7 +477,90 @@ export function ProductDetailPage() {
                 alt={product.name}
                 className="w-full h-full"
                 zoomLevel={2.2}
-              />
+              >
+                {/* Live Laser Engraving Overlay on Main Showcase Image */}
+                {isPersonalizable && activeImageIdx === 0 && product?.personalizationZones?.length > 0 && (
+                  <div className="absolute inset-0 pointer-events-none z-10 select-none overflow-hidden">
+                    {product.personalizationZones.map((zone: any, idx: number) => {
+                      const textValue =
+                        itemizedEngraving[zone.name] ||
+                        (product.personalizationZones.length === 1 && customText && !customText.includes("•")
+                          ? customText
+                          : (zone.sampleText || "Your Name"))
+                      const curvature = zone.curveRadius ?? 35
+                      const arcHeight = (curvature / 100) * 36
+                      const pathId = `showcase-curve-${zone.id || idx}`
+                      const textColor = zone.textColor || "#ffffff"
+
+                      return (
+                        <div
+                          key={zone.id || idx}
+                          style={{
+                            position: "absolute",
+                            left: `${zone.x}%`,
+                            top: `${zone.y}%`,
+                            transform: `translate(-50%, -50%) rotate(${zone.rotation || 0}deg)`,
+                          }}
+                          className="text-center pointer-events-none whitespace-nowrap"
+                        >
+                          {zone.isCurved ? (
+                            <div
+                              style={{
+                                backgroundColor: zone.hasBackground
+                                  ? zone.backgroundColor || "rgba(0,0,0,0.5)"
+                                  : "transparent",
+                                padding: zone.hasBackground ? "3px 6px" : "0",
+                                borderRadius: zone.hasBackground ? "6px" : "0",
+                              }}
+                            >
+                              <svg viewBox="0 0 240 80" className="w-48 h-18 overflow-visible">
+                                <defs>
+                                  <path
+                                    id={pathId}
+                                    d={`M 10,${40 + arcHeight} Q 120,${40 - arcHeight} 230,${40 + arcHeight}`}
+                                    fill="none"
+                                  />
+                                </defs>
+                                <text
+                                  fill={textColor}
+                                  fontSize={zone.fontSize || 18}
+                                  fontWeight="900"
+                                  textAnchor="middle"
+                                  className={selectedFontClass}
+                                  style={{
+                                    filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.95))",
+                                    letterSpacing: "0.04em",
+                                  }}
+                                >
+                                  <textPath href={`#${pathId}`} startOffset="50%">
+                                    {textValue}
+                                  </textPath>
+                                </text>
+                              </svg>
+                            </div>
+                          ) : (
+                            <div
+                              style={{
+                                backgroundColor: zone.hasBackground
+                                  ? zone.backgroundColor || "rgba(0,0,0,0.5)"
+                                  : "transparent",
+                                padding: zone.hasBackground ? "3px 8px" : "0",
+                                borderRadius: zone.hasBackground ? "6px" : "0",
+                                color: textColor,
+                                fontSize: `${zone.fontSize || 18}px`,
+                                textShadow: "0 1px 3px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.85)",
+                              }}
+                              className={`font-black tracking-wide ${selectedFontClass}`}
+                            >
+                              {textValue}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </ImageZoomLens>
 
               {/* Discount Badge */}
               {compareDiscount > 0 && (

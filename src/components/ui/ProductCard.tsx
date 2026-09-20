@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useRef } from "react"
 import { Link } from "react-router-dom"
 import { Star, ShoppingBag, Check, Sparkles, Heart } from "lucide-react"
 import { formatPrice, getImageUrl } from "../../lib/utils"
@@ -17,6 +17,8 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
   const { isInWishlist, toggleWishlist } = useWishlist()
   const [added, setAdded] = useState(false)
   const isWishlisted = isInWishlist(product._id)
+  const videoRef = useRef<HTMLVideoElement>(null)
+
   const [imgSrc, setImgSrc] = useState(() => {
     return product.images?.[0] ? getImageUrl(product.images[0]) : FALLBACK_IMAGE
   })
@@ -25,6 +27,29 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
     product.comparePrice && product.comparePrice > product.price
       ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
       : 0
+
+  // Hover media setup
+  const hoverType = product.hoverMediaType || "image"
+  const hasHoverVideo = hoverType === "video" && Boolean(product.hoverMediaUrl)
+  const hoverImageUrl =
+    hoverType === "image"
+      ? (product.hoverMediaUrl ? getImageUrl(product.hoverMediaUrl) : (product.images?.[1] ? getImageUrl(product.images[1]) : null))
+      : null
+
+  const hasHoverMedia = hasHoverVideo || Boolean(hoverImageUrl)
+
+  const handleMouseEnter = () => {
+    if (hasHoverVideo && videoRef.current) {
+      videoRef.current.play().catch(() => {})
+    }
+  }
+
+  const handleMouseLeave = () => {
+    if (hasHoverVideo && videoRef.current) {
+      videoRef.current.pause()
+      videoRef.current.currentTime = 0
+    }
+  }
 
   const handleQuickAdd = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -41,8 +66,12 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
   }
 
   return (
-    <div className={`group flex flex-col w-full bg-transparent ${className}`}>
-      {/* Product Image (Direct, Borderless, Crisp with 2nd Image Hover) */}
+    <div
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={`group flex flex-col w-full bg-transparent ${className}`}
+    >
+      {/* Product Image (Direct, Borderless, Crisp with Hover Video or Image) */}
       <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-zinc-100 block border border-zinc-100/80">
         <Link to={`/products/${product.slug}`} className="block w-full h-full relative">
           <img
@@ -51,18 +80,117 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
             loading="lazy"
             onError={() => setImgSrc(FALLBACK_IMAGE)}
             className={`w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-105 ${
-              product.images?.[1] ? "group-hover:opacity-0" : ""
+              hasHoverMedia ? "group-hover:opacity-0" : ""
             }`}
           />
-          {product.images?.[1] && (
+
+          {/* On-Hover Video Clip */}
+          {hasHoverVideo && (
+            <video
+              ref={videoRef}
+              src={getImageUrl(product.hoverMediaUrl)}
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              className="w-full h-full object-cover absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+            />
+          )}
+
+          {/* On-Hover Secondary Image */}
+          {hoverImageUrl && (
             <img
-              src={getImageUrl(product.images[1])}
+              src={hoverImageUrl}
               alt={product.name}
               loading="lazy"
               className="w-full h-full object-cover absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-out group-hover:scale-105"
             />
           )}
         </Link>
+
+        {/* Laser Engraving Preview on Product Card */}
+        {product.isPersonalizable && product.personalizationZones && product.personalizationZones.length > 0 && (
+          <div
+            className={`absolute inset-0 pointer-events-none z-10 select-none overflow-hidden transition-opacity duration-300 ${
+              hasHoverMedia ? "group-hover:opacity-0" : ""
+            }`}
+          >
+            {product.personalizationZones.map((zone: any, idx: number) => {
+              const textValue = zone.sampleText || "Your Name"
+              const curvature = zone.curveRadius ?? 35
+              const arcHeight = (curvature / 100) * 36
+              const pathId = `card-curve-${product._id || "prod"}-${zone.id || idx}`
+              const textColor = zone.textColor || "#ffffff"
+              const scaledFontSize = Math.max(8, Math.round((zone.fontSize || 16) * 0.58))
+
+              return (
+                <div
+                  key={zone.id || idx}
+                  style={{
+                    position: "absolute",
+                    left: `${zone.x}%`,
+                    top: `${zone.y}%`,
+                    transform: `translate(-50%, -50%) rotate(${zone.rotation || 0}deg)`,
+                  }}
+                  className="text-center pointer-events-none whitespace-nowrap"
+                >
+                  {zone.isCurved ? (
+                    <div
+                      style={{
+                        backgroundColor: zone.hasBackground
+                          ? zone.backgroundColor || "rgba(0,0,0,0.5)"
+                          : "transparent",
+                        padding: zone.hasBackground ? "2px 4px" : "0",
+                        borderRadius: zone.hasBackground ? "4px" : "0",
+                      }}
+                    >
+                      <svg viewBox="0 0 240 80" className="w-28 sm:w-32 h-10 overflow-visible">
+                        <defs>
+                          <path
+                            id={pathId}
+                            d={`M 10,${40 + arcHeight} Q 120,${40 - arcHeight} 230,${40 + arcHeight}`}
+                            fill="none"
+                          />
+                        </defs>
+                        <text
+                          fill={textColor}
+                          fontSize={scaledFontSize * 1.5}
+                          fontWeight="900"
+                          textAnchor="middle"
+                          className="font-lobster"
+                          style={{
+                            filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.95))",
+                            letterSpacing: "0.04em",
+                          }}
+                        >
+                          <textPath href={`#${pathId}`} startOffset="50%">
+                            {textValue}
+                          </textPath>
+                        </text>
+                      </svg>
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        backgroundColor: zone.hasBackground
+                          ? zone.backgroundColor || "rgba(0,0,0,0.5)"
+                          : "transparent",
+                        padding: zone.hasBackground ? "2px 6px" : "0",
+                        borderRadius: zone.hasBackground ? "4px" : "0",
+                        color: textColor,
+                        fontSize: `${scaledFontSize}px`,
+                        textShadow: "0 1px 2px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.85)",
+                      }}
+                      className="font-black tracking-wide font-lobster"
+                    >
+                      {textValue}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
 
         {/* Top Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1 z-10 pointer-events-none">
