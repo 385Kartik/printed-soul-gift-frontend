@@ -176,7 +176,7 @@ export function HomePage() {
             </div>
 
             {/* Slide Content */}
-            <div className="relative max-w-[1440px] w-full mx-auto px-4 sm:px-8 lg:px-12 py-8">
+            <div className="relative max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-8">
               <div className="max-w-2xl space-y-3 sm:space-y-5">
                 <span className="inline-flex items-center gap-2 bg-amber-500/20 backdrop-blur-md text-amber-300 border border-amber-500/30 text-[10px] sm:text-xs font-bold tracking-widest uppercase px-3.5 py-1.5 rounded-full">
                   <span>✨</span>
@@ -247,7 +247,7 @@ export function HomePage() {
       {/* ═════════════════════════════════════════════════════════
           2. CIRCULAR CATEGORY STRIP (Clean & Direct)
          ═════════════════════════════════════════════════════════ */}
-      <section className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12">
+      <section className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
         <div className="flex items-center justify-between pb-3 mb-5 border-b border-zinc-200">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 block mb-0.5">
@@ -296,7 +296,7 @@ export function HomePage() {
       {/* ═════════════════════════════════════════════════════════
           3. TRENDING BESTSELLERS (Interactive Category Filter)
          ═════════════════════════════════════════════════════════ */}
-      <section className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12">
+      <section className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 mb-3 border-b border-zinc-200 gap-2">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 block mb-0.5">
@@ -338,8 +338,8 @@ export function HomePage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
-          {displayedBestsellers.map((product: any) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-4.5">
+          {displayedBestsellers.slice(0, 10).map((product: any) => (
             <ProductCard key={product._id} product={product} />
           ))}
         </div>
@@ -348,7 +348,7 @@ export function HomePage() {
       {/* ═════════════════════════════════════════════════════════
           4. DIWALI & FESTIVE HAMPERS
          ═════════════════════════════════════════════════════════ */}
-      <section className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12">
+      <section className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
         <div className="flex items-center justify-between pb-2.5 mb-4 border-b border-zinc-200">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 block mb-0.5">
@@ -367,8 +367,8 @@ export function HomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
-          {festiveHampers.slice(0, 8).map((product: any) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-4.5">
+          {festiveHampers.slice(0, 10).map((product: any) => (
             <ProductCard key={product._id} product={product} />
           ))}
         </div>
@@ -377,7 +377,7 @@ export function HomePage() {
       {/* ═════════════════════════════════════════════════════════
           5. PERSONALIZED & ENGRAVED GIFTS
          ═════════════════════════════════════════════════════════ */}
-      <section className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12">
+      <section className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
         <div className="flex items-center justify-between pb-2.5 mb-4 border-b border-zinc-200">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-rose-700 block mb-0.5">
@@ -396,8 +396,8 @@ export function HomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
-          {personalizedGifts.slice(0, 8).map((product: any) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-4.5">
+          {personalizedGifts.slice(0, 10).map((product: any) => (
             <ProductCard key={product._id} product={product} />
           ))}
         </div>
@@ -406,7 +406,7 @@ export function HomePage() {
       {/* ═════════════════════════════════════════════════════════
           6. BULK CORPORATE COMBOS & EXECUTIVE KITS
          ═════════════════════════════════════════════════════════ */}
-      <section className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12">
+      <section className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
         <div className="flex items-center justify-between pb-2.5 mb-4 border-b border-zinc-200">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-blue-700 block mb-0.5">
@@ -425,8 +425,8 @@ export function HomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
-          {corporateGifts.slice(0, 8).map((product: any) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-4.5">
+          {corporateGifts.slice(0, 10).map((product: any) => (
             <ProductCard key={product._id} product={product} />
           ))}
         </div>
@@ -435,7 +435,7 @@ export function HomePage() {
       {/* ═════════════════════════════════════════════════════════
           7. BUDGET-FRIENDLY GIFTS UNDER ₹999
          ═════════════════════════════════════════════════════════ */}
-      <section className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12">
+      <section className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
         <div className="flex items-center justify-between pb-2.5 mb-4 border-b border-zinc-200">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 block mb-0.5">
@@ -454,8 +454,8 @@ export function HomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
-          {under999.slice(0, 8).map((product: any) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-4.5">
+          {under999.slice(0, 10).map((product: any) => (
             <ProductCard key={product._id} product={product} />
           ))}
         </div>
@@ -464,7 +464,7 @@ export function HomePage() {
       {/* ═════════════════════════════════════════════════════════
           8. NEW ARRIVALS & KEEPSAKES
          ═════════════════════════════════════════════════════════ */}
-      <section className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12">
+      <section className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
         <div className="flex items-center justify-between pb-2.5 mb-4 border-b border-zinc-200">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 block mb-0.5">
@@ -483,8 +483,8 @@ export function HomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
-          {newArrivals.slice(0, 8).map((product: any) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-4.5">
+          {newArrivals.slice(0, 10).map((product: any) => (
             <ProductCard key={product._id} product={product} />
           ))}
         </div>
@@ -493,7 +493,7 @@ export function HomePage() {
       {/* ═════════════════════════════════════════════════════════
           8.5 VALUE TRUST MICRO-STRIP (High-Converting 1-Line Trust Bar)
          ═════════════════════════════════════════════════════════ */}
-      <section className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12">
+      <section className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
         <div className="py-3.5 px-4 sm:px-6 rounded-2xl bg-zinc-50 border border-zinc-200/80 grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-amber-100/80 text-amber-800 flex items-center justify-center shrink-0">
@@ -540,7 +540,7 @@ export function HomePage() {
       {/* ═════════════════════════════════════════════════════════
           9. VERIFIED BUYER EXPERIENCES (Compact Row)
          ═════════════════════════════════════════════════════════ */}
-      <section className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12 pt-2">
+      <section className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 pt-2">
         <div className="flex items-center justify-between pb-2.5 mb-4 border-b border-zinc-200">
           <div>
             <h3 className="text-base sm:text-lg font-bold text-zinc-950">

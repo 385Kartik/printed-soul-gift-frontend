@@ -786,7 +786,7 @@ export function ProductDetailPage() {
               )}
             </div>
             <p className="text-[11px] text-zinc-500">
-              Inclusive of all GST taxes. Free express shipping on all orders over ₹500.
+              Inclusive of 18% GST. 100% Free Express Delivery Pan-India on all orders.
             </p>
           </div>
 

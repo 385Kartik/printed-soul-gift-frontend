@@ -62,9 +62,8 @@ export function CheckoutPage() {
     setPincode(addr.pincode)
   }
 
-  const freeShippingThreshold = 500
-  const shippingCharge = totalAmount >= freeShippingThreshold ? 0 : 50
-  const finalTotal = totalAmount + shippingCharge
+  const shippingCharge = 0
+  const finalTotal = totalAmount
 
   // Handle PayU Submit
   const handleProceedToPayment = async (e: React.FormEvent) => {
@@ -156,7 +155,7 @@ export function CheckoutPage() {
   ]
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-10">
       <SEO title="Secure Checkout — Printed Soul Gift" />
 
       <div className="max-w-4xl mx-auto">
@@ -384,14 +383,19 @@ export function CheckoutPage() {
                   <span>Subtotal</span>
                   <span className="font-bold text-zinc-900">{formatPrice(totalAmount)}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span>Delhivery Express Shipping</span>
-                  <span className="font-bold text-emerald-600">
-                    {shippingCharge === 0 ? "FREE" : "₹50"}
+                  <span className="font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full text-[11px]">
+                    FREE
                   </span>
                 </div>
-                <div className="flex justify-between text-sm font-black text-zinc-900 pt-2 border-t border-zinc-100">
-                  <span>Total Payable</span>
+                <div className="flex justify-between items-baseline text-sm font-black text-zinc-900 pt-2 border-t border-zinc-100">
+                  <div>
+                    <span>Total Payable</span>
+                    <span className="block text-[10px] font-normal text-emerald-700">
+                      Inclusive of 18% GST &amp; all taxes
+                    </span>
+                  </div>
                   <span className="text-rose-600 font-display text-lg">
                     {formatPrice(finalTotal)}
                   </span>

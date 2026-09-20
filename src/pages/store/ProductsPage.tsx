@@ -66,14 +66,14 @@ export function ProductsPage() {
   ]
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-6">
       <SEO
         title="Browse All Gifts &amp; Hampers — Printed Soul Gift"
         description="Browse our complete collection of personalized gifts, corporate hampers, and festive boxes."
       />
 
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-200 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-zinc-200 mb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-serif font-bold text-zinc-950 tracking-tight">
             {searchQuery
@@ -113,9 +113,9 @@ export function ProductsPage() {
       </div>
 
       {/* Main Content Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8">
         {/* Desktop Sidebar Filters */}
-        <div className="hidden lg:block space-y-6 bg-white p-5 rounded-xl border border-zinc-200/80 shadow-xs self-start">
+        <div className="hidden lg:block lg:col-span-3 xl:col-span-2 space-y-6 bg-white p-5 rounded-xl border border-zinc-200/80 shadow-xs self-start">
           <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
             <span className="text-xs font-bold uppercase tracking-wider text-zinc-900 flex items-center gap-2">
               <Filter className="w-3.5 h-3.5 text-amber-700" /> Filter Catalog
@@ -195,10 +195,10 @@ export function ProductsPage() {
         </div>
 
         {/* Product Grid */}
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-9 xl:col-span-10">
           {isLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {[...Array(6)].map((_, i) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {[...Array(10)].map((_, i) => (
                 <div key={i} className="aspect-square rounded-xl bg-zinc-100 animate-pulse" />
               ))}
             </div>
@@ -217,7 +217,7 @@ export function ProductsPage() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-3.5 sm:gap-4 md:gap-5">
               {products.map((p: any) => (
                 <ProductCard key={p._id} product={p} />
               ))}

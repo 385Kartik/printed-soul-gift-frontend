@@ -9,9 +9,6 @@ export function CartPage() {
   const { items, totalAmount, updateQuantity, removeFromCart } = useCart()
   const navigate = useNavigate()
 
-  const freeShippingThreshold = 500
-  const freeShippingGap = Math.max(0, freeShippingThreshold - totalAmount)
-
   if (items.length === 0) {
     return (
       <div className="max-w-xl mx-auto px-4 py-24 text-center">
@@ -34,7 +31,7 @@ export function CartPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-10">
       <SEO title="Your Gift Bag — Printed Soul Gift" />
 
       <h1 className="text-2xl sm:text-3xl font-display font-black text-zinc-900 mb-8">
@@ -107,26 +104,31 @@ export function CartPage() {
             Order Summary
           </h3>
 
-          <div className="space-y-2 text-xs text-zinc-600">
+          <div className="p-3 bg-emerald-50 border border-emerald-200/80 rounded-2xl flex items-center gap-2.5 text-xs text-emerald-800">
+            <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span><strong>Free Express Delivery:</strong> All orders across India ship 100% free with priority tracking.</span>
+          </div>
+
+          <div className="space-y-2.5 text-xs text-zinc-600">
             <div className="flex justify-between">
               <span>Subtotal</span>
               <span className="font-bold text-zinc-900">{formatPrice(totalAmount)}</span>
             </div>
-            <div className="flex justify-between">
-              <span>Estimated Shipping</span>
-              <span className="font-bold text-emerald-600">
-                {freeShippingGap === 0 ? "FREE" : "₹50"}
+            <div className="flex justify-between items-center">
+              <span>Delhivery Express Shipping</span>
+              <span className="font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full text-[11px]">
+                FREE
               </span>
             </div>
-            {freeShippingGap > 0 && (
-              <p className="text-[11px] text-amber-700 bg-amber-50 p-2 rounded-xl">
-                Add {formatPrice(freeShippingGap)} more for free express shipping!
-              </p>
-            )}
-            <div className="flex justify-between text-sm font-black text-zinc-900 pt-3 border-t border-zinc-100">
-              <span>Total Amount</span>
-              <span className="text-rose-600 font-display text-lg">
-                {formatPrice(totalAmount + (freeShippingGap === 0 ? 0 : 50))}
+            <div className="flex justify-between items-baseline text-sm font-black text-zinc-900 pt-3 border-t border-zinc-100">
+              <div>
+                <span>Total Amount</span>
+                <span className="block text-[11px] font-normal text-emerald-700 mt-0.5">
+                  Inclusive of 18% GST &amp; all taxes
+                </span>
+              </div>
+              <span className="text-rose-600 font-display text-xl font-black">
+                {formatPrice(totalAmount)}
               </span>
             </div>
           </div>

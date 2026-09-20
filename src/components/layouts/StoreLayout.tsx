@@ -15,6 +15,7 @@ import {
   Heart,
   Home,
   Tag,
+  Flame,
 } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { useAuth } from "../../context/AuthContext"
@@ -39,25 +40,50 @@ export function StoreLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const searchContainerRef = useRef<HTMLDivElement>(null)
+  const mobileSearchRef = useRef<HTMLDivElement>(null)
+
+  const POPULAR_SEARCHES = [
+    "Personalized Diary",
+    "Laser Engraved Pen",
+    "Diwali Gift Hamper",
+    "3D Illusion Lamp",
+    "Corporate Kit",
+    "Thermal Flask",
+  ]
 
   // Live autocomplete query
   const { data: liveSearchData } = useQuery({
     queryKey: ["live-search", searchInput],
-    queryFn: () => catalogApi.getProducts({ search: searchInput.trim(), limit: 5 }),
-    enabled: searchInput.trim().length >= 2,
+    queryFn: () => catalogApi.getProducts({ search: searchInput.trim(), limit: 6 }),
+    enabled: searchInput.trim().length >= 1,
     staleTime: 60 * 1000,
   })
   const liveSearchResults = liveSearchData?.data?.data || []
 
-  // Close search dropdown on click outside
+  // Close search dropdown on click outside or Escape
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(target) &&
+        mobileSearchRef.current &&
+        !mobileSearchRef.current.contains(target)
+      ) {
+        setShowSearchDropdown(false)
+      }
+    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
         setShowSearchDropdown(false)
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
+    window.addEventListener("keydown", handleKeyDown)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+      window.removeEventListener("keydown", handleKeyDown)
+    }
   }, [])
 
   // Close search dropdown on route change
@@ -74,12 +100,28 @@ export function StoreLayout() {
 
   const navCategories = navbarCategoriesData?.data?.data || []
 
+  const matchingCategories = React.useMemo(() => {
+    const query = searchInput.trim().toLowerCase()
+    if (!query) return []
+    return navCategories.filter(
+      (c: any) =>
+        c.displayName?.toLowerCase().includes(query) ||
+        c.slug?.toLowerCase().includes(query)
+    )
+  }, [searchInput, navCategories])
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchInput.trim()) {
       setShowSearchDropdown(false)
       navigate(`/products?search=${encodeURIComponent(searchInput.trim())}`)
     }
+  }
+
+  const handleQuickSearch = (term: string) => {
+    setSearchInput(term)
+    setShowSearchDropdown(false)
+    navigate(`/products?search=${encodeURIComponent(term)}`)
   }
 
   return (
@@ -105,7 +147,7 @@ export function StoreLayout() {
          ═════════════════════════════════════════════════════════ */}
       <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-xs">
         {/* Top Tier: Logo, Central Search, Account, Cart */}
-        <div className="max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
+        <div className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
           <div className="flex items-center justify-between h-16 sm:h-20 gap-4 lg:gap-8">
             
             {/* Brand Logo */}
@@ -123,7 +165,7 @@ export function StoreLayout() {
               </div>
             </Link>
 
-            {/* Central Search Bar with Live Autocomplete Dropdown */}
+            {/* Central Search Bar with Smart Autocomplete & Popular Searches */}
             <div ref={searchContainerRef} className="hidden md:flex flex-1 max-w-xl relative items-center">
               <form
                 onSubmit={handleSearchSubmit}
@@ -139,8 +181,18 @@ export function StoreLayout() {
                   }}
                   onFocus={() => setShowSearchDropdown(true)}
                   placeholder="Search hampers, personalized gifts, corporate kits..."
-                  className="w-full pl-11 pr-24 py-2.5 bg-zinc-50 hover:bg-zinc-100/70 focus:bg-white text-xs sm:text-sm text-zinc-900 rounded-full border border-zinc-200 focus:border-amber-600 focus:outline-none focus:ring-4 focus:ring-amber-500/10 transition-all placeholder:text-zinc-400"
+                  className="w-full pl-11 pr-28 py-2.5 bg-zinc-50 hover:bg-zinc-100/70 focus:bg-white text-xs sm:text-sm text-zinc-900 rounded-full border border-zinc-200 focus:border-amber-600 focus:outline-none focus:ring-4 focus:ring-amber-500/10 transition-all placeholder:text-zinc-400"
                 />
+                {searchInput && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchInput("")}
+                    className="absolute right-20 text-zinc-400 hover:text-zinc-700 p-1 cursor-pointer"
+                    title="Clear search"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
                 <button
                   type="submit"
                   className="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-zinc-900 hover:bg-black text-white text-xs font-semibold rounded-full flex items-center justify-center transition-colors cursor-pointer"
@@ -149,53 +201,126 @@ export function StoreLayout() {
                 </button>
               </form>
 
-              {/* Live Search Autocomplete Panel */}
-              {showSearchDropdown && searchInput.trim().length >= 2 && (
+              {/* Smart Search Panel */}
+              {showSearchDropdown && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden z-50 animate-in fade-in duration-150">
-                  {liveSearchResults.length === 0 ? (
-                    <div className="p-4 text-center text-xs text-zinc-400">
-                      No gifts found matching "{searchInput}"
+                  {!searchInput.trim() ? (
+                    <div className="p-4 space-y-3.5">
+                      <div>
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-2">
+                          <Flame className="w-3.5 h-3.5 text-amber-600" />
+                          <span>Trending Searches</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {POPULAR_SEARCHES.map((term) => (
+                            <button
+                              key={term}
+                              type="button"
+                              onClick={() => handleQuickSearch(term)}
+                              className="px-3 py-1.5 rounded-full bg-zinc-100 hover:bg-amber-100/70 hover:text-amber-950 text-zinc-700 text-xs font-medium transition-colors cursor-pointer"
+                            >
+                              {term}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {navCategories.length > 0 && (
+                        <div className="border-t border-zinc-100 pt-3">
+                          <div className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-2">
+                            Popular Collections
+                          </div>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {navCategories.slice(0, 6).map((cat: any) => (
+                              <Link
+                                key={cat._id}
+                                to={`/products?category=${cat.slug}`}
+                                onClick={() => setShowSearchDropdown(false)}
+                                className="flex items-center gap-2 p-2 rounded-lg hover:bg-zinc-50 text-xs font-medium text-zinc-800 transition-colors"
+                              >
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                                <span className="truncate">{cat.displayName}</span>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
-                    <div className="divide-y divide-zinc-100">
-                      <div className="px-4 py-2 bg-zinc-50 text-[10px] font-bold uppercase tracking-wider text-zinc-400 flex items-center justify-between">
-                        <span>Instant Matches</span>
-                        <span>{liveSearchResults.length} Gifts</span>
-                      </div>
-                      {liveSearchResults.map((p: any) => (
-                        <div
-                          key={p._id}
-                          onClick={() => {
-                            setShowSearchDropdown(false)
-                            setSearchInput("")
-                            navigate(`/products/${p.slug}`)
-                          }}
-                          className="flex items-center gap-3 p-3 hover:bg-zinc-50 transition-colors cursor-pointer"
-                        >
-                          <img
-                            src={getImageUrl(p.images?.[0])}
-                            alt=""
-                            className="w-10 h-10 rounded-lg object-cover border border-zinc-200 bg-zinc-50 shrink-0"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-zinc-900 truncate hover:text-amber-700">
-                              {p.name}
-                            </p>
-                            <p className="text-[10px] text-zinc-400">
-                              {p.category?.name || "Gift Set"} • {p.isPersonalizable ? "✨ Personalizable" : "In Stock"}
-                            </p>
-                          </div>
-                          <span className="font-bold text-xs text-zinc-950 shrink-0">
-                            {formatPrice(p.price)}
-                          </span>
+                    <div>
+                      {matchingCategories.length > 0 && (
+                        <div className="p-2.5 bg-amber-50/70 border-b border-amber-100 flex items-center gap-2 text-xs flex-wrap">
+                          <span className="font-bold text-amber-950 text-[11px]">Matching Collections:</span>
+                          {matchingCategories.slice(0, 2).map((c: any) => (
+                            <Link
+                              key={c._id}
+                              to={`/products?category=${c.slug}`}
+                              onClick={() => {
+                                setShowSearchDropdown(false)
+                                setSearchInput("")
+                              }}
+                              className="px-2.5 py-0.5 bg-white border border-amber-300 text-amber-900 rounded-full font-bold text-[11px] hover:bg-amber-100 transition-colors"
+                            >
+                              {c.displayName} →
+                            </Link>
+                          ))}
                         </div>
-                      ))}
-                      <button
-                        onClick={handleSearchSubmit}
-                        className="w-full py-2.5 bg-zinc-50 hover:bg-zinc-100 text-center text-xs font-bold text-amber-700 transition-colors block cursor-pointer"
-                      >
-                        Press Enter to see all results for "{searchInput}" →
-                      </button>
+                      )}
+
+                      {liveSearchResults.length === 0 ? (
+                        <div className="p-5 text-center text-xs text-zinc-500 space-y-1">
+                          <p className="font-bold text-zinc-800">No gifts found matching "{searchInput}"</p>
+                          <p className="text-[11px] text-zinc-400">Try searching for generic terms like 'hamper', 'pen', or 'lamp'.</p>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-zinc-100">
+                          <div className="px-4 py-2 bg-zinc-50 text-[10px] font-bold uppercase tracking-wider text-zinc-400 flex items-center justify-between">
+                            <span>Instant Matches</span>
+                            <span>{liveSearchResults.length} Gifts</span>
+                          </div>
+                          {liveSearchResults.map((p: any) => (
+                            <div
+                              key={p._id}
+                              onClick={() => {
+                                setShowSearchDropdown(false)
+                                setSearchInput("")
+                                navigate(`/products/${p.slug}`)
+                              }}
+                              className="flex items-center gap-3 p-3 hover:bg-zinc-50 transition-colors cursor-pointer"
+                            >
+                              <img
+                                src={getImageUrl(p.images?.[0])}
+                                alt=""
+                                className="w-11 h-11 rounded-lg object-cover border border-zinc-200 bg-zinc-50 shrink-0"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-bold text-zinc-900 truncate hover:text-amber-700">
+                                  {p.name}
+                                </p>
+                                <p className="text-[10px] text-zinc-400">
+                                  {p.category?.name || "Gift Set"} • {p.isPersonalizable ? "✨ Personalizable" : "In Stock"}
+                                </p>
+                              </div>
+                              <div className="text-right shrink-0">
+                                <span className="font-bold text-xs text-zinc-950 block">
+                                  {formatPrice(p.price)}
+                                </span>
+                                {p.comparePrice && p.comparePrice > p.price && (
+                                  <span className="text-[10px] text-zinc-400 line-through">
+                                    {formatPrice(p.comparePrice)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                          <button
+                            onClick={handleSearchSubmit}
+                            className="w-full py-2.5 bg-zinc-50 hover:bg-zinc-100 text-center text-xs font-bold text-amber-700 transition-colors block cursor-pointer"
+                          >
+                            Press Enter to see all results for "{searchInput}" →
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -313,8 +438,8 @@ export function StoreLayout() {
             </div>
           </div>
 
-          {/* Mobile Search Bar with Live Autocomplete */}
-          <div className="md:hidden pb-3 relative">
+          {/* Mobile Search Bar with Smart Autocomplete */}
+          <div ref={mobileSearchRef} className="md:hidden pb-3 relative">
             <form onSubmit={handleSearchSubmit} className="relative flex items-center">
               <input
                 type="text"
@@ -325,8 +450,17 @@ export function StoreLayout() {
                 }}
                 onFocus={() => setShowSearchDropdown(true)}
                 placeholder="Search gifts, hampers, combos..."
-                className="w-full pl-3 pr-10 py-2 bg-zinc-100 text-xs text-zinc-900 rounded-full border border-zinc-200 focus:outline-none focus:border-amber-600"
+                className="w-full pl-3 pr-16 py-2 bg-zinc-100 text-xs text-zinc-900 rounded-full border border-zinc-200 focus:outline-none focus:border-amber-600"
               />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={() => setSearchInput("")}
+                  className="absolute right-10 text-zinc-400 hover:text-zinc-700 p-1"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
               <button
                 type="submit"
                 className="absolute right-1 px-3 py-1.5 bg-amber-600 text-white rounded-full text-xs"
@@ -335,46 +469,88 @@ export function StoreLayout() {
               </button>
             </form>
 
-            {/* Mobile Autocomplete Panel */}
-            {showSearchDropdown && searchInput.trim().length >= 2 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-2xl border border-zinc-200 overflow-hidden z-50 animate-in fade-in duration-150">
-                {liveSearchResults.length === 0 ? (
-                  <div className="p-3 text-center text-xs text-zinc-400">
-                    No gifts matching "{searchInput}"
+            {/* Mobile Smart Search Panel */}
+            {showSearchDropdown && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-2xl border border-zinc-200 overflow-hidden z-50 animate-in fade-in duration-150 max-h-80 overflow-y-auto">
+                {!searchInput.trim() ? (
+                  <div className="p-3 space-y-3">
+                    <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider flex items-center gap-1">
+                      <Flame className="w-3 h-3 text-amber-600" />
+                      <span>Trending Searches</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {POPULAR_SEARCHES.map((term) => (
+                        <button
+                          key={term}
+                          type="button"
+                          onClick={() => handleQuickSearch(term)}
+                          className="px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-700 text-[11px] font-medium"
+                        >
+                          {term}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 ) : (
-                  <div className="divide-y divide-zinc-100 max-h-64 overflow-y-auto">
-                    {liveSearchResults.map((p: any) => (
-                      <div
-                        key={p._id}
-                        onClick={() => {
-                          setShowSearchDropdown(false)
-                          setSearchInput("")
-                          navigate(`/products/${p.slug}`)
-                        }}
-                        className="flex items-center gap-2.5 p-2.5 hover:bg-zinc-50 transition-colors cursor-pointer"
-                      >
-                        <img
-                          src={getImageUrl(p.images?.[0])}
-                          alt=""
-                          className="w-9 h-9 rounded-lg object-cover border border-zinc-200 bg-zinc-50 shrink-0"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-zinc-900 truncate">
-                            {p.name}
-                          </p>
-                          <p className="text-[10px] text-zinc-400">
-                            {p.category?.name || "Gift"} • {formatPrice(p.price)}
-                          </p>
-                        </div>
+                  <div>
+                    {matchingCategories.length > 0 && (
+                      <div className="p-2 bg-amber-50 border-b border-amber-100 flex items-center gap-1.5 text-[11px] flex-wrap">
+                        <span className="font-bold text-amber-950">Category:</span>
+                        {matchingCategories.slice(0, 2).map((c: any) => (
+                          <Link
+                            key={c._id}
+                            to={`/products?category=${c.slug}`}
+                            onClick={() => {
+                              setShowSearchDropdown(false)
+                              setSearchInput("")
+                            }}
+                            className="px-2 py-0.5 bg-white border border-amber-300 text-amber-900 rounded-full font-bold text-[10px]"
+                          >
+                            {c.displayName} →
+                          </Link>
+                        ))}
                       </div>
-                    ))}
-                    <button
-                      onClick={handleSearchSubmit}
-                      className="w-full py-2 bg-zinc-50 text-center text-xs font-bold text-amber-700 transition-colors block"
-                    >
-                      View all results →
-                    </button>
+                    )}
+
+                    {liveSearchResults.length === 0 ? (
+                      <div className="p-3 text-center text-xs text-zinc-400">
+                        No gifts matching "{searchInput}"
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-zinc-100">
+                        {liveSearchResults.map((p: any) => (
+                          <div
+                            key={p._id}
+                            onClick={() => {
+                              setShowSearchDropdown(false)
+                              setSearchInput("")
+                              navigate(`/products/${p.slug}`)
+                            }}
+                            className="flex items-center gap-2.5 p-2.5 hover:bg-zinc-50 transition-colors cursor-pointer"
+                          >
+                            <img
+                              src={getImageUrl(p.images?.[0])}
+                              alt=""
+                              className="w-9 h-9 rounded-lg object-cover border border-zinc-200 bg-zinc-50 shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-bold text-zinc-900 truncate">
+                                {p.name}
+                              </p>
+                              <p className="text-[10px] text-zinc-400">
+                                {p.category?.name || "Gift"} • {formatPrice(p.price)}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                        <button
+                          onClick={handleSearchSubmit}
+                          className="w-full py-2 bg-zinc-50 text-center text-xs font-bold text-amber-700 transition-colors block"
+                        >
+                          View all results →
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -384,7 +560,7 @@ export function StoreLayout() {
 
         {/* Tier 2: Sleek Modern Category Strip (Clean, Light, Luxury) */}
         <div className="hidden lg:block bg-white border-t border-zinc-100">
-          <div className="max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
+          <div className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
             <div className="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar py-2 text-xs">
               <div className="flex items-center gap-1 xl:gap-2">
                 <Link
@@ -493,7 +669,7 @@ export function StoreLayout() {
           3. FOOTER (Amazon / Flipkart rich footer standard)
          ═════════════════════════════════════════════════════════ */}
       <footer className="bg-slate-950 text-slate-400 border-t border-slate-900 pt-14 pb-10 mt-12">
-        <div className="max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
+        <div className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 pb-12 border-b border-slate-800">
             {/* Brand Column */}
             <div className="lg:col-span-2 space-y-4">

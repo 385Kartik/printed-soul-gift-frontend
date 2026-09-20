@@ -12,10 +12,6 @@ export function CartDrawer() {
 
   if (!isCartOpen) return null
 
-  const freeShippingThreshold = 500
-  const freeShippingGap = Math.max(0, freeShippingThreshold - totalAmount)
-  const freeShippingPercent = Math.min(100, Math.round((totalAmount / freeShippingThreshold) * 100))
-
   const handleCheckout = () => {
     closeCart()
     navigate("/checkout")
@@ -44,23 +40,15 @@ export function CartDrawer() {
           </button>
         </div>
 
-        {/* Free Shipping Progress Bar */}
-        <div className="p-4 bg-rose-50/50 border-b border-rose-100">
-          <div className="flex items-center justify-between text-xs font-bold mb-1.5">
-            <span className="text-zinc-700 flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-rose-600" />
-              {freeShippingGap === 0
-                ? "🎉 You've unlocked FREE Shipping!"
-                : `Add ${formatPrice(freeShippingGap)} more for FREE Delivery`}
-            </span>
-            <span className="text-rose-700">{freeShippingPercent}%</span>
-          </div>
-          <div className="w-full bg-rose-200/60 rounded-full h-1.5 overflow-hidden">
-            <div
-              className="bg-rose-600 h-full rounded-full transition-all duration-300"
-              style={{ width: `${freeShippingPercent}%` }}
-            />
-          </div>
+        {/* Free Express Delivery Strip */}
+        <div className="px-4 py-2.5 bg-emerald-50 border-b border-emerald-100 flex items-center justify-between text-xs font-semibold text-emerald-800">
+          <span className="flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+            <span>🎉 100% Free Express Delivery Pan-India</span>
+          </span>
+          <span className="text-[10px] bg-emerald-200/70 text-emerald-900 px-2 py-0.5 rounded-full font-bold">
+            FREE
+          </span>
         </div>
 
         {/* Item List */}
@@ -174,16 +162,19 @@ export function CartDrawer() {
                 <span>Subtotal</span>
                 <span className="font-bold text-zinc-900">{formatPrice(totalAmount)}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span>Shipping</span>
-                <span className="font-bold text-emerald-600">
-                  {freeShippingGap === 0 ? "FREE" : "₹50 (Orders under ₹500)"}
+                <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full text-[11px]">
+                  FREE Pan-India
                 </span>
               </div>
-              <div className="flex justify-between text-sm font-black text-zinc-900 pt-1 border-t border-zinc-200">
-                <span>Total Amount</span>
+              <div className="flex justify-between items-baseline text-sm font-black text-zinc-900 pt-1 border-t border-zinc-200">
+                <div>
+                  <span>Total Amount</span>
+                  <span className="block text-[10px] font-normal text-emerald-700">Inclusive of 18% GST</span>
+                </div>
                 <span className="text-rose-600 font-display text-base">
-                  {formatPrice(totalAmount + (freeShippingGap === 0 ? 0 : 50))}
+                  {formatPrice(totalAmount)}
                 </span>
               </div>
             </div>

@@ -28,6 +28,8 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
       ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
       : 0
 
+  const [isCardHovered, setIsCardHovered] = useState(false)
+
   // Hover media setup
   const hoverType = product.hoverMediaType || "image"
   const hasHoverVideo = hoverType === "video" && Boolean(product.hoverMediaUrl)
@@ -39,15 +41,25 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
   const hasHoverMedia = hasHoverVideo || Boolean(hoverImageUrl)
 
   const handleMouseEnter = () => {
+    setIsCardHovered(true)
     if (hasHoverVideo && videoRef.current) {
-      videoRef.current.play().catch(() => {})
+      try {
+        videoRef.current.currentTime = 0
+        const playPromise = videoRef.current.play()
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {})
+        }
+      } catch (err) {}
     }
   }
 
   const handleMouseLeave = () => {
+    setIsCardHovered(false)
     if (hasHoverVideo && videoRef.current) {
-      videoRef.current.pause()
-      videoRef.current.currentTime = 0
+      try {
+        videoRef.current.pause()
+        videoRef.current.currentTime = 0
+      } catch (err) {}
     }
   }
 
@@ -74,14 +86,13 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
       {/* Product Image (Direct, Borderless, Crisp with Hover Video or Image) */}
       <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-zinc-100 block border border-zinc-100/80">
         <Link to={`/products/${product.slug}`} className="block w-full h-full relative">
+          {/* Base Product Image */}
           <img
             src={imgSrc}
             alt={product.name}
             loading="lazy"
             onError={() => setImgSrc(FALLBACK_IMAGE)}
-            className={`w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-105 ${
-              hasHoverMedia ? "group-hover:opacity-0" : ""
-            }`}
+            className="w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-105"
           />
 
           {/* On-Hover Video Clip */}
@@ -92,8 +103,10 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
               muted
               loop
               playsInline
-              preload="metadata"
-              className="w-full h-full object-cover absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+              preload="auto"
+              className={`w-full h-full object-cover absolute inset-0 transition-opacity duration-300 pointer-events-none z-[2] ${
+                isCardHovered ? "opacity-100" : "opacity-0"
+              }`}
             />
           )}
 
@@ -103,7 +116,9 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
               src={hoverImageUrl}
               alt={product.name}
               loading="lazy"
-              className="w-full h-full object-cover absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-out group-hover:scale-105"
+              className={`w-full h-full object-cover absolute inset-0 transition-opacity duration-500 ease-out group-hover:scale-105 pointer-events-none z-[2] ${
+                isCardHovered ? "opacity-100" : "opacity-0"
+              }`}
             />
           )}
         </Link>
@@ -112,7 +127,7 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
         {product.isPersonalizable && product.personalizationZones && product.personalizationZones.length > 0 && (
           <div
             className={`absolute inset-0 pointer-events-none z-10 select-none overflow-hidden transition-opacity duration-300 ${
-              hasHoverMedia ? "group-hover:opacity-0" : ""
+              hasHoverMedia && isCardHovered ? "opacity-0 pointer-events-none" : "opacity-100"
             }`}
           >
             {product.personalizationZones.map((zone: any, idx: number) => {
