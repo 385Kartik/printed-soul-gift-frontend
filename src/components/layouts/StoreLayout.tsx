@@ -105,7 +105,7 @@ export function StoreLayout() {
          ═════════════════════════════════════════════════════════ */}
       <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-xs">
         {/* Top Tier: Logo, Central Search, Account, Cart */}
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
           <div className="flex items-center justify-between h-16 sm:h-20 gap-4 lg:gap-8">
             
             {/* Brand Logo */}
@@ -384,7 +384,7 @@ export function StoreLayout() {
 
         {/* Tier 2: Sleek Modern Category Strip (Clean, Light, Luxury) */}
         <div className="hidden lg:block bg-white border-t border-zinc-100">
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
             <div className="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar py-2 text-xs">
               <div className="flex items-center gap-1 xl:gap-2">
                 <Link
@@ -493,7 +493,7 @@ export function StoreLayout() {
           3. FOOTER (Amazon / Flipkart rich footer standard)
          ═════════════════════════════════════════════════════════ */}
       <footer className="bg-slate-950 text-slate-400 border-t border-slate-900 pt-14 pb-10 mt-12">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 pb-12 border-b border-slate-800">
             {/* Brand Column */}
             <div className="lg:col-span-2 space-y-4">

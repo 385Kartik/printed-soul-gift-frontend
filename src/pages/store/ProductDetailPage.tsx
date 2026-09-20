@@ -12,8 +12,6 @@ import {
   CheckCircle2,
   Check,
   ChevronRight,
-  ChevronUp,
-  ChevronDown,
   Loader2,
   Package,
   Heart,
@@ -23,6 +21,9 @@ import {
   MessageSquare,
   Plus,
   Minus,
+  Award,
+  Clock,
+  Layers,
 } from "lucide-react"
 import { catalogApi, reviewApi, uploadApi } from "../../lib/api"
 import { formatPrice, getImageUrl } from "../../lib/utils"
@@ -66,14 +67,13 @@ export function ProductDetailPage() {
   const [selectedVariantsMap, setSelectedVariantsMap] = useState<Record<string, string>>({})
 
   // Dynamic Viewer Counter (Giftana CRO feature)
-  const [viewersCount, setViewersCount] = useState(12)
+  const [viewersCount, setViewersCount] = useState(14)
   useEffect(() => {
     const interval = setInterval(() => {
-      // fluctuate smoothly between 8 and 18 viewers
       setViewersCount((prev) => {
         const delta = Math.random() > 0.5 ? 1 : -1
         const next = prev + delta
-        return next < 7 ? 8 : next > 20 ? 17 : next
+        return next < 8 ? 9 : next > 22 ? 18 : next
       })
     }, 4500)
     return () => clearInterval(interval)
@@ -347,7 +347,7 @@ export function ProductDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-28 flex items-center justify-center">
+      <div className="max-w-[1600px] mx-auto px-4 py-28 flex items-center justify-center">
         <Loader2 className="w-9 h-9 text-amber-600 animate-spin" />
       </div>
     )
@@ -375,7 +375,7 @@ export function ProductDetailPage() {
       : tierDiscount
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-10">
+    <div className="max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-5 space-y-8">
       <SEO title={`${product.name} — Printed Soul Gift`} description={product.description} />
 
       {/* Breadcrumbs */}
@@ -391,75 +391,201 @@ export function ProductDetailPage() {
           {product.category?.name || "Catalog"}
         </Link>
         <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
-        <span className="text-zinc-900 font-medium truncate max-w-[260px]">{product.name}</span>
+        <span className="text-zinc-900 font-medium truncate max-w-[320px]">{product.name}</span>
       </nav>
 
-      {/* Main Grid: Gallery (Left) & Configuration / Buy (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+      {/* Main Grid: Gallery & Specifications (Left 7 cols) & Buy Box (Right 5 cols) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12 items-start">
         
         {/* ═════════════════════════════════════════════════════════
-            LEFT COLUMN: GALLERY WITH VERTICAL THUMBNAIL STRIP
+            LEFT COLUMN: GALLERY + GIFT HIGHLIGHTS & SPECIFICATIONS
            ═════════════════════════════════════════════════════════ */}
-        <div className="lg:col-span-6 flex flex-col-reverse md:flex-row gap-4 items-start sticky top-24">
-          {/* Vertical Thumbnail Strip (Desktop/Tablet) */}
-          {images.length > 1 && (
-            <div className="flex md:flex-col gap-2.5 overflow-x-auto md:overflow-y-auto max-h-[520px] scrollbar-thin scrollbar-thumb-zinc-200 shrink-0 w-full md:w-20 pb-2 md:pb-0">
-              {images.map((img: string, idx: number) => (
-                <button
-                  key={idx}
-                  onClick={() => setActiveImageIdx(idx)}
-                  className={`relative w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden border-2 transition-all shrink-0 bg-zinc-50 ${
-                    activeImageIdx === idx
-                      ? "border-amber-600 shadow-sm ring-1 ring-amber-500"
-                      : "border-zinc-200 hover:border-zinc-400 opacity-80 hover:opacity-100"
-                  }`}
-                >
-                  <img
-                    src={getImageUrl(img)}
-                    alt=""
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Main Showcase Image */}
-          <div className="flex-1 w-full aspect-square rounded-2xl overflow-hidden bg-zinc-50 border border-zinc-200 relative group shadow-sm">
-            <img
-              src={getImageUrl(images[activeImageIdx])}
-              alt={product.name}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-
-            {/* Discount Badge */}
-            {compareDiscount > 0 && (
-              <span className="absolute top-3.5 left-3.5 bg-gradient-to-r from-amber-600 to-rose-600 text-white text-[11px] font-black px-2.5 py-1 rounded-md shadow-md tracking-wider">
-                SAVE {compareDiscount}%
-              </span>
+        <div className="lg:col-span-7 space-y-6">
+          
+          {/* Main Showcase Gallery */}
+          <div className="flex flex-col-reverse sm:flex-row gap-4 items-start">
+            {/* Vertical Thumbnail Strip */}
+            {images.length > 1 && (
+              <div className="flex sm:flex-col gap-2.5 overflow-x-auto sm:overflow-y-auto max-h-[580px] scrollbar-thin scrollbar-thumb-zinc-200 shrink-0 w-full sm:w-24 pb-2 sm:pb-0">
+                {images.map((img: string, idx: number) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveImageIdx(idx)}
+                    className={`relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 transition-all shrink-0 bg-zinc-50 ${
+                      activeImageIdx === idx
+                        ? "border-amber-600 shadow-md ring-2 ring-amber-500/30 scale-[1.02]"
+                        : "border-zinc-200 hover:border-zinc-400 opacity-80 hover:opacity-100"
+                    }`}
+                  >
+                    <img
+                      src={getImageUrl(img)}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </button>
+                ))}
+              </div>
             )}
 
-            {/* Wishlist Heart Button */}
-            <button
-              type="button"
-              onClick={() => toggleWishlist(product)}
-              className="absolute top-3.5 right-3.5 w-10 h-10 rounded-full bg-white/95 hover:bg-white text-zinc-700 hover:text-rose-600 flex items-center justify-center shadow-md transition-all cursor-pointer z-10 active:scale-90"
-              title={isWishlisted ? "Remove from Wishlist" : "Save to Wishlist"}
-            >
-              <Heart
-                className={`w-5 h-5 transition-colors ${
-                  isWishlisted ? "fill-rose-600 text-rose-600" : ""
-                }`}
+            {/* Main Showcase Image (Expanded, Prominent, Crisp) */}
+            <div className="flex-1 w-full aspect-square sm:aspect-[4/3] lg:aspect-square max-h-[620px] rounded-3xl overflow-hidden bg-zinc-50 border border-zinc-200 relative group shadow-sm">
+              <img
+                src={getImageUrl(images[activeImageIdx])}
+                alt={product.name}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-            </button>
+
+              {/* Discount Badge */}
+              {compareDiscount > 0 && (
+                <span className="absolute top-4 left-4 bg-gradient-to-r from-amber-600 to-rose-600 text-white text-xs font-black px-3 py-1.5 rounded-lg shadow-lg tracking-wider">
+                  SAVE {compareDiscount}%
+                </span>
+              )}
+
+              {/* Wishlist Heart Button */}
+              <button
+                type="button"
+                onClick={() => toggleWishlist(product)}
+                className="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/95 hover:bg-white text-zinc-700 hover:text-rose-600 flex items-center justify-center shadow-lg transition-all cursor-pointer z-10 active:scale-90"
+                title={isWishlisted ? "Remove from Wishlist" : "Save to Wishlist"}
+              >
+                <Heart
+                  className={`w-5 h-5 transition-colors ${
+                    isWishlisted ? "fill-rose-600 text-rose-600" : ""
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+
+          {/* ═════════════════════════════════════════════════════════
+              LUXURY GIFTING TRUST CARDS (Fills left column space)
+             ═════════════════════════════════════════════════════════ */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-center space-y-1">
+              <Sparkles className="w-5 h-5 text-amber-600 mx-auto" />
+              <h4 className="text-xs font-bold text-amber-950">Free Engraving</h4>
+              <p className="text-[10px] text-amber-800">Precision Laser Tech</p>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-rose-50/70 border border-rose-200/80 text-center space-y-1">
+              <Gift className="w-5 h-5 text-rose-600 mx-auto" />
+              <h4 className="text-xs font-bold text-rose-950">Luxury Gift Box</h4>
+              <p className="text-[10px] text-rose-800">Satin Finish Ribbon</p>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 text-center space-y-1">
+              <Truck className="w-5 h-5 text-emerald-600 mx-auto" />
+              <h4 className="text-xs font-bold text-emerald-950">Express Dispatch</h4>
+              <p className="text-[10px] text-emerald-800">24–48h Delhivery</p>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-1">
+              <ShieldCheck className="w-5 h-5 text-slate-700 mx-auto" />
+              <h4 className="text-xs font-bold text-slate-950">Damage-Free</h4>
+              <p className="text-[10px] text-slate-700">100% Transit Safe</p>
+            </div>
+          </div>
+
+          {/* ═════════════════════════════════════════════════════════
+              PRODUCT HIGHLIGHTS, WHAT'S INSIDE & SPECIFICATIONS
+             ═════════════════════════════════════════════════════════ */}
+          <div className="bg-white rounded-3xl border border-zinc-200/90 p-6 shadow-xs space-y-6">
+            <div>
+              <h3 className="text-base font-serif font-black text-zinc-950 flex items-center gap-2">
+                <Award className="w-5 h-5 text-amber-600" />
+                <span>What Makes This Gift Special</span>
+              </h3>
+              <p className="text-xs text-zinc-600 leading-relaxed mt-2.5">
+                {product.description ||
+                  "Handcrafted with exquisite attention to detail, this luxury gift hamper represents the highest standard of modern personalized gifting. Designed to create a lasting impression for your clients, family, or loved ones."}
+              </p>
+            </div>
+
+            {/* Inclusions & Highlights */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-zinc-100">
+              <div className="space-y-2.5">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-zinc-900 flex items-center gap-1.5">
+                  <Package className="w-4 h-4 text-amber-600" />
+                  <span>Hamper Inclusions</span>
+                </h4>
+                <ul className="space-y-1.5 text-xs text-zinc-600">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>1 × {product.name}</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Laser Engraved Custom Name / Message</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Deluxe Hardbound Satin Lined Gift Box</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Handwritten Greeting Card Envelope</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="space-y-2.5">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-zinc-900 flex items-center gap-1.5">
+                  <Layers className="w-4 h-4 text-amber-600" />
+                  <span>Key Specifications</span>
+                </h4>
+                <div className="space-y-1.5 text-xs text-zinc-600">
+                  <div className="flex justify-between py-1 border-b border-zinc-100">
+                    <span className="text-zinc-400">Material</span>
+                    <span className="font-semibold text-zinc-800">Food-Grade SS 304 / Premium</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-zinc-100">
+                    <span className="text-zinc-400">Finish</span>
+                    <span className="font-semibold text-zinc-800">Matte Anti-Scratch Powder Coat</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-zinc-100">
+                    <span className="text-zinc-400">Personalization</span>
+                    <span className="font-semibold text-zinc-800">Permanent Fiber Laser Engraved</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="text-zinc-400">Packaging</span>
+                    <span className="font-semibold text-zinc-800">Luxury Satin Gift Box Included</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Target Occasions & Recipients */}
+            {((product.giftOccasions && product.giftOccasions.length > 0) ||
+              (product.recipient && product.recipient.length > 0)) && (
+              <div className="pt-4 border-t border-zinc-100 space-y-2.5">
+                <h4 className="text-xs font-bold text-zinc-800">Ideal For:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {(product.giftOccasions || []).map((occ: string) => (
+                    <span
+                      key={occ}
+                      className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-900 border border-amber-200/80"
+                    >
+                      🎉 {occ}
+                    </span>
+                  ))}
+                  {(product.recipient || []).map((rec: string) => (
+                    <span
+                      key={rec}
+                      className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-900 border border-rose-200/80"
+                    >
+                      🎁 For {rec}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* ═════════════════════════════════════════════════════════
-            RIGHT COLUMN: DETAILS, TIERED PRICING & ADDONS (Giftana Style)
+            RIGHT COLUMN: DETAILS, TIERED PRICING & ADDONS (Sticky Buy Box)
            ═════════════════════════════════════════════════════════ */}
-        <div className="lg:col-span-6 space-y-6">
+        <div className="lg:col-span-5 space-y-5 lg:sticky lg:top-24">
+          
           {/* Header & Badges */}
           <div>
             {product.category?.name && (
