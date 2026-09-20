@@ -40,8 +40,16 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
   unitPrice,
   onAddToCartWithPersonalization,
 }) => {
+  // Personalization zones configured by admin
+  const zones: any[] = useMemo(() => {
+    return product?.personalizationZones || []
+  }, [product])
+
   // Determine items in combo
   const comboItems = useMemo(() => {
+    if (zones.length > 0) {
+      return zones.map((z: any) => z.name)
+    }
     if (product?.personalizationItems && product.personalizationItems.length > 0) {
       return product.personalizationItems
     }
@@ -62,7 +70,7 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
       return ["Flask"]
     }
     return [product?.personalizationPrompt || "Product"]
-  }, [product])
+  }, [product, zones])
 
   // State for each item's engraving text
   const [itemTexts, setItemTexts] = useState<Record<string, string>>({})
@@ -206,13 +214,85 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
                   />
 
                   {/* ═════════════════════════════════════════════════
-                      LIVE LASER ENGRAVING OVERLAYS
+                      LIVE LASER ENGRAVING OVERLAYS (CLEAN TEXT)
                      ═════════════════════════════════════════════════ */}
                   {comboItems.map((item: string, idx: number) => {
                     const textValue = itemTexts[item] || "Your Name"
-                    const isCustomized = Boolean(itemTexts[item]?.trim())
+                    const matchingZone = zones.find((z: any) => z.name === item) || zones[idx]
 
-                    // Responsive positioning based on combo or single item
+                    if (matchingZone) {
+                      const curvature = matchingZone.curveRadius ?? 35
+                      const arcHeight = (curvature / 100) * 36
+                      const pathId = `modal-curve-${matchingZone.id || idx}`
+                      const textColor = matchingZone.textColor || "#ffffff"
+
+                      return (
+                        <div
+                          key={item}
+                          style={{
+                            left: `${matchingZone.x}%`,
+                            top: `${matchingZone.y}%`,
+                            transform: `translate(-50%, -50%) rotate(${matchingZone.rotation || 0}deg)`,
+                          }}
+                          className="absolute z-10 transition-all text-center pointer-events-none whitespace-nowrap"
+                        >
+                          {matchingZone.isCurved ? (
+                            <div
+                              style={{
+                                backgroundColor: matchingZone.hasBackground
+                                  ? matchingZone.backgroundColor || "rgba(0,0,0,0.5)"
+                                  : "transparent",
+                                padding: matchingZone.hasBackground ? "3px 6px" : "0",
+                                borderRadius: matchingZone.hasBackground ? "6px" : "0",
+                              }}
+                            >
+                              <svg viewBox="0 0 240 80" className="w-48 h-18 overflow-visible">
+                                <defs>
+                                  <path
+                                    id={pathId}
+                                    d={`M 10,${40 + arcHeight} Q 120,${40 - arcHeight} 230,${40 + arcHeight}`}
+                                    fill="none"
+                                  />
+                                </defs>
+                                <text
+                                  fill={textColor}
+                                  fontSize={matchingZone.fontSize || 18}
+                                  fontWeight="900"
+                                  textAnchor="middle"
+                                  className={selectedFont.cssClass}
+                                  style={{
+                                    filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.95))",
+                                    letterSpacing: "0.04em",
+                                  }}
+                                >
+                                  <textPath href={`#${pathId}`} startOffset="50%">
+                                    {textValue}
+                                  </textPath>
+                                </text>
+                              </svg>
+                            </div>
+                          ) : (
+                            <div
+                              style={{
+                                backgroundColor: matchingZone.hasBackground
+                                  ? matchingZone.backgroundColor || "rgba(0,0,0,0.5)"
+                                  : "transparent",
+                                padding: matchingZone.hasBackground ? "3px 8px" : "0",
+                                borderRadius: matchingZone.hasBackground ? "6px" : "0",
+                                color: textColor,
+                                fontSize: `${matchingZone.fontSize || 18}px`,
+                                textShadow: "0 1px 3px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.85)",
+                              }}
+                              className={`font-black tracking-wide ${selectedFont.cssClass}`}
+                            >
+                              {textValue}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    }
+
+                    // Fallback for items without explicit admin zone
                     const isDiary = item.toLowerCase().includes("diary") || item.toLowerCase().includes("notebook")
                     const isPen = item.toLowerCase().includes("pen")
 
@@ -225,24 +305,13 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
                     return (
                       <div
                         key={item}
-                        className={`absolute ${positionClasses} z-10 transition-all text-center pointer-events-none`}
+                        className={`absolute ${positionClasses} z-10 transition-all text-center pointer-events-none whitespace-nowrap`}
                       >
-                        <div
-                          className={`px-3 py-1 rounded-md shadow-xs inline-block transition-colors ${
-                            isCustomized
-                              ? "bg-black/30 backdrop-blur-2xs border border-white/20"
-                              : "bg-black/20 border border-white/10"
-                          }`}
+                        <span
+                          className={`text-base sm:text-lg tracking-wide font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] ${selectedFont.cssClass}`}
                         >
-                          <span className="text-[9px] uppercase tracking-wider text-amber-200 font-bold block mb-0.5 opacity-80">
-                            {item}
-                          </span>
-                          <span
-                            className={`text-sm sm:text-base tracking-wide font-black text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] ${selectedFont.cssClass}`}
-                          >
-                            {textValue}
-                          </span>
-                        </div>
+                          {textValue}
+                        </span>
                       </div>
                     )
                   })}
