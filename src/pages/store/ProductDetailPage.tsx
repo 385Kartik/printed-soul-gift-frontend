@@ -11,6 +11,7 @@ import {
   Upload,
   CheckCircle2,
   Check,
+  ChevronLeft,
   ChevronRight,
   Loader2,
   Package,
@@ -31,6 +32,8 @@ import { useCart } from "../../context/CartContext"
 import { useWishlist } from "../../context/WishlistContext"
 import { useAuth } from "../../context/AuthContext"
 import { SEO } from "../../components/ui/SEO"
+import { ImageZoomLens } from "../../components/store/ImageZoomLens"
+import { PersonalizationModal } from "../../components/store/PersonalizationModal"
 
 interface SelectedAddonState {
   addonId: string
@@ -57,6 +60,9 @@ export function ProductDetailPage() {
   const [customImage, setCustomImage] = useState("")
   const [uploadingImage, setUploadingImage] = useState(false)
   const [added, setAdded] = useState(false)
+
+  // Giftana Personalization Studio Modal
+  const [showPersonalizeModal, setShowPersonalizeModal] = useState(false)
 
   // Selected Tier
   const [selectedTierIndex, setSelectedTierIndex] = useState(0)
@@ -284,8 +290,10 @@ export function ProductDetailPage() {
   }
 
   const handleAddToCart = async () => {
+    // If product requires personalization and user hasn't entered anything,
+    // open the Personalization Studio instead of browser alert!
     if (isPersonalizable && !customText.trim()) {
-      alert("Please enter the name or custom text for engraving.")
+      setShowPersonalizeModal(true)
       return
     }
 
@@ -303,9 +311,35 @@ export function ProductDetailPage() {
     setTimeout(() => setAdded(false), 2500)
   }
 
+  // Callback from PersonalizationModal
+  const handleAddToCartFromModal = async (data: {
+    engravingText: string
+    itemizedEngraving: Record<string, string>
+    font: string
+    quantity: number
+    logoUrl?: string
+  }) => {
+    const { selectedTierPayload, selectedAddonsPayload } = prepareCartPayload()
+
+    // Sync inline state with modal selections
+    setCustomText(data.engravingText)
+    setQuantity(data.quantity)
+
+    await addToCart(
+      product._id,
+      data.quantity,
+      data.engravingText,
+      data.logoUrl || (isPersonalizable ? customImage : undefined),
+      selectedTierPayload,
+      selectedAddonsPayload
+    )
+    setAdded(true)
+    setTimeout(() => setAdded(false), 2500)
+  }
+
   const handleBuyNow = async () => {
     if (isPersonalizable && !customText.trim()) {
-      alert("Please enter the name or custom text for engraving.")
+      setShowPersonalizeModal(true)
       return
     }
 
@@ -428,17 +462,18 @@ export function ProductDetailPage() {
               </div>
             )}
 
-            {/* Main Showcase Image (Expanded, Prominent, Crisp) */}
+            {/* Main Showcase Image (With Mouse-Tracking Zoom Lens & Chevrons) */}
             <div className="flex-1 w-full aspect-square sm:aspect-[4/3] lg:aspect-square max-h-[620px] rounded-3xl overflow-hidden bg-zinc-50 border border-zinc-200 relative group shadow-sm">
-              <img
+              <ImageZoomLens
                 src={getImageUrl(images[activeImageIdx])}
                 alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-full"
+                zoomLevel={2.2}
               />
 
               {/* Discount Badge */}
               {compareDiscount > 0 && (
-                <span className="absolute top-4 left-4 bg-gradient-to-r from-amber-600 to-rose-600 text-white text-xs font-black px-3 py-1.5 rounded-lg shadow-lg tracking-wider">
+                <span className="absolute top-4 left-4 bg-gradient-to-r from-amber-600 to-rose-600 text-white text-xs font-black px-3 py-1.5 rounded-lg shadow-lg tracking-wider pointer-events-none z-10">
                   SAVE {compareDiscount}%
                 </span>
               )}
@@ -447,7 +482,7 @@ export function ProductDetailPage() {
               <button
                 type="button"
                 onClick={() => toggleWishlist(product)}
-                className="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/95 hover:bg-white text-zinc-700 hover:text-rose-600 flex items-center justify-center shadow-lg transition-all cursor-pointer z-10 active:scale-90"
+                className="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/95 hover:bg-white text-zinc-700 hover:text-rose-600 flex items-center justify-center shadow-lg transition-all cursor-pointer z-20 active:scale-90"
                 title={isWishlisted ? "Remove from Wishlist" : "Save to Wishlist"}
               >
                 <Heart
@@ -456,11 +491,40 @@ export function ProductDetailPage() {
                   }`}
                 />
               </button>
+
+              {/* Carousel Left / Right Chevrons */}
+              {images.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setActiveImageIdx((prev) => (prev === 0 ? images.length - 1 : prev - 1))
+                    }}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-zinc-800 flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity z-20 cursor-pointer"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setActiveImageIdx((prev) => (prev === images.length - 1 ? 0 : prev + 1))
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-zinc-800 flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity z-20 cursor-pointer"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
           {/* ═════════════════════════════════════════════════════════
-              LUXURY GIFTING TRUST CARDS (Fills left column space)
+              LUXURY GIFTING TRUST CARDS
              ═════════════════════════════════════════════════════════ */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-center space-y-1">
@@ -851,10 +915,7 @@ export function ProductDetailPage() {
                         </div>
                       </div>
 
-                      {/* ═════════════════════════════════════════════════
-                          DYNAMIC GREETING MESSAGE INPUT BOX
-                          (Shown if addon.requiresMessage AND isSelected)
-                         ═════════════════════════════════════════════════ */}
+                      {/* Dynamic Greeting Message Input Box */}
                       {addon.requiresMessage && isSelected && (
                         <div className="pt-2.5 border-t border-amber-200/80 animate-in fade-in space-y-1.5">
                           <label className="block text-[11px] font-bold text-amber-950 flex items-center gap-1.5">
@@ -884,30 +945,50 @@ export function ProductDetailPage() {
           )}
 
           {/* ═════════════════════════════════════════════════════════
-              GIFT PERSONALIZATION BOX (Engraved Name / Photo)
+              GIFT PERSONALIZATION CARD (With Live Studio Launcher)
              ═════════════════════════════════════════════════════════ */}
           {isPersonalizable && (
-            <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-4">
-              <div className="flex items-center gap-2 text-amber-950">
-                <Sparkles className="w-4 h-4 text-amber-600" />
-                <h3 className="text-xs font-bold uppercase tracking-wider">
-                  Laser Engraving Personalization
-                </h3>
+            <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-3.5">
+              <div className="flex items-center justify-between text-amber-950">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-600" />
+                  <h3 className="text-xs font-bold uppercase tracking-wider">
+                    Laser Engraving Personalization
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPersonalizeModal(true)}
+                  className="text-[11px] font-extrabold text-amber-700 hover:text-amber-900 underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Preview Studio</span>
+                  <span>↗</span>
+                </button>
               </div>
 
-              {/* Engraving Text Input */}
+              {/* Quick Inline Input */}
               <div>
                 <label className="block text-xs font-semibold text-zinc-800 mb-1.5">
                   {product.personalizationPrompt || "Name or Custom Text to Engrave"} *
                 </label>
-                <input
-                  type="text"
-                  required
-                  value={customText}
-                  onChange={(e) => setCustomText(e.target.value)}
-                  placeholder="e.g. Radhe &amp; Krishna or Company Name"
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-amber-300 bg-white text-xs font-medium text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customText}
+                    onChange={(e) => setCustomText(e.target.value)}
+                    placeholder="e.g. Radhe & Krishna"
+                    className="flex-1 px-3.5 py-2.5 rounded-lg border border-amber-300 bg-white text-xs font-medium text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPersonalizeModal(true)}
+                    className="px-3.5 py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold text-xs rounded-lg border border-amber-300 transition-colors shrink-0 flex items-center gap-1 cursor-pointer"
+                    title="Open Live Font & Mockup Studio"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-700" />
+                    <span>Fonts & Preview</span>
+                  </button>
+                </div>
                 <span className="text-[10px] text-zinc-500 block mt-1">
                   Precision laser engraved permanently on the gift.
                 </span>
@@ -917,7 +998,7 @@ export function ProductDetailPage() {
                   <div className="mt-2.5 p-3 rounded-xl bg-amber-100/70 border border-amber-300 flex items-center justify-between text-xs animate-in fade-in">
                     <span className="text-amber-900 font-semibold flex items-center gap-1">
                       <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                      <span>Engraving Preview:</span>
+                      <span>Engraving Text:</span>
                     </span>
                     <span className="font-serif font-black text-amber-950 tracking-wider text-sm italic bg-white/95 px-3 py-1 rounded-md border border-amber-300 shadow-2xs">
                       {customText.trim()}
@@ -928,7 +1009,7 @@ export function ProductDetailPage() {
 
               {/* Logo / Image Upload ONLY IF allowCustomImageUpload */}
               {allowCustomImage && (
-                <div>
+                <div className="pt-2 border-t border-amber-200/60">
                   <label className="block text-xs font-semibold text-zinc-800 mb-1.5">
                     Upload Photo / Brand Logo (Optional)
                   </label>
@@ -965,7 +1046,7 @@ export function ProductDetailPage() {
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="p-1.5 text-zinc-600 hover:text-zinc-950 font-bold transition-colors"
+                    className="p-1.5 text-zinc-600 hover:text-zinc-950 font-bold transition-colors cursor-pointer"
                   >
                     <Minus className="w-3.5 h-3.5" />
                   </button>
@@ -975,7 +1056,7 @@ export function ProductDetailPage() {
                   <button
                     type="button"
                     onClick={() => setQuantity(quantity + 1)}
-                    className="p-1.5 text-zinc-600 hover:text-zinc-950 font-bold transition-colors"
+                    className="p-1.5 text-zinc-600 hover:text-zinc-950 font-bold transition-colors cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                   </button>
@@ -1029,14 +1110,28 @@ export function ProductDetailPage() {
               </button>
             </div>
 
-            <button
-              type="button"
-              onClick={handleBuyNow}
-              className="w-full py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white shadow-md active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Zap className="w-4 h-4 fill-current" />
-              <span>Buy Now • Fast Checkout</span>
-            </button>
+            {/* ═════════════════════════════════════════════════════════
+                PRIMARY ACTION: GIFTANA "PERSONALIZE IT" BUTTON OR BUY NOW
+               ═════════════════════════════════════════════════════════ */}
+            {isPersonalizable ? (
+              <button
+                type="button"
+                onClick={() => setShowPersonalizeModal(true)}
+                className="w-full py-4 px-6 rounded-2xl font-black text-sm sm:text-base bg-amber-500 hover:bg-amber-600 text-zinc-950 shadow-lg active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Sparkles className="w-5 h-5 text-zinc-950" />
+                <span>Personalize It</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleBuyNow}
+                className="w-full py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white shadow-md active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Zap className="w-4 h-4 fill-current" />
+                <span>Buy Now • Fast Checkout</span>
+              </button>
+            )}
           </div>
 
           {/* Delivery & Trust Reassurances */}
@@ -1074,7 +1169,7 @@ export function ProductDetailPage() {
           </div>
           <button
             onClick={() => setShowReviewModal(true)}
-            className="px-4 py-2 rounded-lg bg-zinc-950 text-white font-semibold text-xs hover:bg-zinc-800 transition-colors"
+            className="px-4 py-2 rounded-lg bg-zinc-950 text-white font-semibold text-xs hover:bg-zinc-800 transition-colors cursor-pointer"
           >
             Write a Review
           </button>
@@ -1168,14 +1263,14 @@ export function ProductDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowReviewModal(false)}
-                  className="flex-1 py-2 rounded-lg border border-zinc-300 font-semibold text-xs text-zinc-700 hover:bg-zinc-50"
+                  className="flex-1 py-2 rounded-lg border border-zinc-300 font-semibold text-xs text-zinc-700 hover:bg-zinc-50 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submittingReview}
-                  className="flex-1 py-2 rounded-lg bg-zinc-950 text-white font-semibold text-xs hover:bg-black transition-colors"
+                  className="flex-1 py-2 rounded-lg bg-zinc-950 text-white font-semibold text-xs hover:bg-black transition-colors cursor-pointer"
                 >
                   {submittingReview ? "Submitting..." : "Submit Review"}
                 </button>
@@ -1183,6 +1278,20 @@ export function ProductDetailPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* ═════════════════════════════════════════════════════════
+          GIFTANA PERSONALIZATION STUDIO MODAL
+         ═════════════════════════════════════════════════════════ */}
+      {isPersonalizable && (
+        <PersonalizationModal
+          isOpen={showPersonalizeModal}
+          onClose={() => setShowPersonalizeModal(false)}
+          product={product}
+          currentQuantity={quantity}
+          unitPrice={unitPrice}
+          onAddToCartWithPersonalization={handleAddToCartFromModal}
+        />
       )}
 
       {/* ═════════════════════════════════════════════════════════
@@ -1202,20 +1311,32 @@ export function ProductDetailPage() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={handleAddToCart}
-            className="px-3.5 py-2.5 bg-zinc-900 hover:bg-black text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer"
-          >
-            <ShoppingBag className="w-3.5 h-3.5" />
-            <span>Add</span>
-          </button>
-          <button
-            onClick={handleBuyNow}
-            className="px-4 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer"
-          >
-            <Zap className="w-3.5 h-3.5 fill-current" />
-            <span>Buy Now</span>
-          </button>
+          {isPersonalizable ? (
+            <button
+              onClick={() => setShowPersonalizeModal(true)}
+              className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-zinc-950 text-xs font-black rounded-xl flex items-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-zinc-950" />
+              <span>Personalize It</span>
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={handleAddToCart}
+                className="px-3.5 py-2.5 bg-zinc-900 hover:bg-black text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer"
+              >
+                <ShoppingBag className="w-3.5 h-3.5" />
+                <span>Add</span>
+              </button>
+              <button
+                onClick={handleBuyNow}
+                className="px-4 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer"
+              >
+                <Zap className="w-3.5 h-3.5 fill-current" />
+                <span>Buy Now</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
