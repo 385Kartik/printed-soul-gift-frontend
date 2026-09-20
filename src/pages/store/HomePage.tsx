@@ -14,6 +14,7 @@ import {
   CheckCircle2,
 } from "lucide-react"
 import { catalogApi } from "../../lib/api"
+import { getImageUrl } from "../../lib/utils"
 import { ProductCard } from "../../components/ui/ProductCard"
 import { SEO } from "../../components/ui/SEO"
 
@@ -21,6 +22,24 @@ const FALLBACK_CATEGORY_IMAGE =
   "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=300&auto=format&fit=crop&q=80"
 
 const HERO_SLIDES = [
+  {
+    title: "Bulk Corporate Gifting & Employee Welcome Kits",
+    tag: "EXECUTIVE 2026 COLLECTION",
+    subtitle:
+      "Branded onboarding combos with company logo engraving. Custom boxes, premium notebooks, thermal flasks & backpacks delivered pan-India.",
+    buttonText: "Explore Corporate Hampers",
+    link: "/products?category=corporate-gifts",
+    bgImage: "/uploads/banners/corporate_desktop_banner_-giftana.webp",
+  },
+  {
+    title: "Celebrate Every Birthday With Timeless Keepsakes",
+    tag: "CURATED CELEBRATION GIFTS",
+    subtitle:
+      "Laser-engraved executive wallets, LED smart tumblers, and gourmet pamper hampers handcrafted for your loved ones.",
+    buttonText: "Shop Birthday Gifts",
+    link: "/products?category=birthday-gifts",
+    bgImage: "/uploads/banners/birthday_gifts_desktop_banner_-_giftana.webp",
+  },
   {
     title: "Royal Diwali Gift Hampers & Festive Sweets",
     tag: "FESTIVE COLLECTION 2026",
@@ -30,26 +49,6 @@ const HERO_SLIDES = [
     link: "/products?category=diwali-gifts",
     bgImage:
       "https://images.unsplash.com/photo-1512909006721-3d6018887383?w=1600&auto=format&fit=crop&q=80",
-  },
-  {
-    title: "Precision Laser-Engraved Personalized Gifts",
-    tag: "CUSTOM ENGRAVING STUDIO",
-    subtitle:
-      "Laser-engraved thermal flasks, glowing acrylic star sky lamps, and custom leather notebooks personalized with names & special dates.",
-    buttonText: "Personalize Your Gift",
-    link: "/products?category=personalized-gifts",
-    bgImage:
-      "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=1600&auto=format&fit=crop&q=80",
-  },
-  {
-    title: "Bulk Corporate Gifting & Employee Welcome Kits",
-    tag: "CORPORATE SOLUTIONS",
-    subtitle:
-      "Branded onboarding combos with company logo engraving. Custom boxes, premium notebooks & temperature bottles delivered pan-India.",
-    buttonText: "Explore Corporate Kits",
-    link: "/products?category=corporate-gifts",
-    bgImage:
-      "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=1600&auto=format&fit=crop&q=80",
   },
 ]
 
@@ -168,7 +167,7 @@ export function HomePage() {
             {/* Background Image with Dark Contrast Gradients */}
             <div className="absolute inset-0">
               <img
-                src={slide.bgImage}
+                src={getImageUrl(slide.bgImage)}
                 alt={slide.title}
                 className="w-full h-full object-cover opacity-50 scale-105 transition-transform duration-1000"
               />
@@ -276,7 +275,7 @@ export function HomePage() {
               <div className="w-18 h-18 sm:w-22 sm:h-22 rounded-full p-[2.5px] bg-gradient-to-tr from-amber-500 via-rose-300 to-amber-600 shadow-xs group-hover:scale-105 transition-transform duration-300">
                 <div className="w-full h-full rounded-full overflow-hidden border-2 border-white bg-zinc-100">
                   <img
-                    src={cat.image || FALLBACK_CATEGORY_IMAGE}
+                    src={cat.image ? getImageUrl(cat.image) : FALLBACK_CATEGORY_IMAGE}
                     alt={cat.name}
                     onError={(e) => {
                       e.currentTarget.src = FALLBACK_CATEGORY_IMAGE
