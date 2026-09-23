@@ -773,7 +773,7 @@ export function ProductDetailPage() {
             RIGHT COLUMN: DETAILS, TIERED PRICING & ADDONS (Sticky Buy Box)
             (Order 2 on mobile, pushed to right side on desktop)
            ═════════════════════════════════════════════════════════ */}
-        <div className="order-2 lg:order-none lg:col-span-5 lg:col-start-8 lg:row-start-1 w-full space-y-5 lg:sticky lg:top-24">
+        <div className="order-2 lg:order-none lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:row-span-2 w-full space-y-5 lg:sticky lg:top-24">
           
           {/* Header & Badges */}
           <div>
