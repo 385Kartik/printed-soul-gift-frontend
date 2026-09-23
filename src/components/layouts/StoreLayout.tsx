@@ -161,17 +161,16 @@ export function StoreLayout() {
           <Sparkles className="w-3 h-3 text-amber-400" />
           <span>FESTIVE SALE</span>
         </span>
+        <span className="text-zinc-600">•</span>
+        <span>Code <strong className="text-amber-300 font-mono tracking-wider font-bold">FESTIVE10</strong> — 10% Off</span>
         <span className="hidden sm:inline text-zinc-600">•</span>
-        <span>Use Code <strong className="text-amber-300 font-mono tracking-wider font-bold">FESTIVE10</strong> for 10% Off</span>
+        <span className="hidden sm:inline text-zinc-300">🚚 Free Delivery Pan-India</span>
         <span className="hidden md:inline text-zinc-600">•</span>
-        <span className="hidden md:inline text-zinc-300">🚚 Free Express Delhivery Pan-India</span>
-        <span className="hidden lg:inline text-zinc-600">•</span>
-        <span className="hidden sm:inline text-zinc-600">•</span>
         <a
           href="https://wa.me/918591721436"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1 transition-colors"
+          className="hidden sm:flex text-emerald-400 hover:text-emerald-300 font-semibold items-center gap-1 transition-colors"
         >
           <span>WhatsApp: 85917 21436</span>
         </a>
@@ -183,20 +182,20 @@ export function StoreLayout() {
       <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-xs">
         {/* Top Tier: Logo, Central Search, Account, Cart */}
         <div className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
-          <div className="flex items-center justify-between py-2 sm:py-2.5 gap-4 lg:gap-8 h-20">
+          <div className="flex items-center justify-between py-2 sm:py-2.5 gap-2 sm:gap-4 lg:gap-8 h-16 sm:h-20 overflow-hidden">
             
             {/* Brand Logo: Clean PS Monogram Emblem + Bodoni Moda Luxury Typography */}
-            <Link to="/" className="flex items-center gap-3 shrink-0 group py-1">
+            <Link to="/" className="flex items-center gap-1.5 sm:gap-3 shrink-0 group py-1 min-w-0">
               <img
                 src="/logo-emblem.png"
                 alt="Printed Soul Gift"
-                className="h-12 sm:h-14 lg:h-16 w-auto object-contain group-hover:scale-105 transition-transform shrink-0"
+                className="h-9 sm:h-12 lg:h-16 w-auto object-contain group-hover:scale-105 transition-transform shrink-0"
               />
-              <div className="flex flex-col justify-center">
-                <span className="font-logo font-extrabold text-2xl sm:text-3xl tracking-[0.04em] text-zinc-950 leading-none">
+              <div className="flex flex-col justify-center min-w-0">
+                <span className="font-logo font-extrabold text-base sm:text-2xl lg:text-3xl tracking-[0.04em] text-zinc-950 leading-none whitespace-nowrap">
                   PRINTED SOUL
                 </span>
-                <span className="text-[10px] sm:text-xs tracking-[0.3em] font-black text-amber-600 uppercase leading-tight mt-1.5">
+                <span className="text-[8px] sm:text-[10px] lg:text-xs tracking-[0.2em] sm:tracking-[0.3em] font-black text-amber-600 uppercase leading-tight mt-0.5 sm:mt-1.5 whitespace-nowrap">
                   LUXURY GIFTING
                 </span>
               </div>
@@ -461,11 +460,11 @@ export function StoreLayout() {
             </div>
 
             {/* Right Action Items */}
-            <div className="flex items-center gap-2.5 sm:gap-4 shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2.5 sm:gap-4 shrink-0">
               {/* Wishlist Button with Live Count Badge */}
               <button
                 onClick={openWishlist}
-                className="relative p-2 text-zinc-700 hover:text-rose-600 hover:bg-zinc-100 rounded-full transition-colors cursor-pointer"
+                className="relative p-1.5 sm:p-2 text-zinc-700 hover:text-rose-600 hover:bg-zinc-100 rounded-full transition-colors cursor-pointer hidden xs:block"
                 aria-label="View Wishlist"
                 title="Saved Wishlist"
               >
@@ -545,7 +544,7 @@ export function StoreLayout() {
               {/* Shopping Cart Pill */}
               <button
                 onClick={openCart}
-                className="flex items-center gap-2.5 px-3.5 py-2 bg-zinc-900 hover:bg-black text-white rounded-full transition-all cursor-pointer shadow-sm hover:shadow active:scale-95"
+                className="flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-3.5 py-2 bg-zinc-900 hover:bg-black text-white rounded-full transition-all cursor-pointer shadow-sm hover:shadow active:scale-95"
                 aria-label="View Shopping Cart"
               >
                 <div className="relative">

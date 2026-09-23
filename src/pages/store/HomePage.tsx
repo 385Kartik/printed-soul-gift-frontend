@@ -182,7 +182,7 @@ export function HomePage() {
                   <span>{slide.tag}</span>
                 </span>
 
-                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif font-bold text-white tracking-tight leading-[1.15]">
+                <h1 className="text-xl sm:text-4xl lg:text-6xl font-serif font-bold text-white tracking-tight leading-[1.15]">
                   {slide.title}
                 </h1>
 
