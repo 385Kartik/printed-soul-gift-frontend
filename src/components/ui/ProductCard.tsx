@@ -84,7 +84,7 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
       className={`group flex flex-col w-full bg-transparent ${className}`}
     >
       {/* Product Image (Direct, Borderless, Crisp with Hover Video or Image) */}
-      <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-zinc-100 block border border-zinc-100/80">
+      <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl bg-zinc-100 block border border-zinc-100/80">
         <Link to={`/products/${product.slug}`} className="block w-full h-full relative">
           {/* Base Product Image & Laser Engraving Preview (zoomed together synchronously on hover) */}
           <div className="w-full h-full relative transition-all duration-500 ease-out group-hover:scale-105 origin-center">
