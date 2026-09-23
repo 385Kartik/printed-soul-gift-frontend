@@ -497,13 +497,18 @@ export function ProductDetailPage() {
         <span className="text-zinc-900 font-medium truncate max-w-[320px]">{product.name}</span>
       </nav>
 
-      {/* Main Grid: Gallery & Specifications (Left 7 cols) & Buy Box (Right 5 cols) */}
-      <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 xl:gap-12 items-start">
+      {/* Main Container: Gallery & Specifications (Left 7/12) & Buy Box (Right 5/12) */}
+      <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 xl:gap-12 items-start w-full">
         
         {/* ═════════════════════════════════════════════════════════
-            LEFT COLUMN (GALLERY) - Order 1 on mobile
+            LEFT COLUMN WRAPPER
            ═════════════════════════════════════════════════════════ */}
-        <div className="order-1 lg:order-none lg:col-span-7 space-y-6 w-full">
+        <div className="contents lg:block lg:col-span-7 lg:space-y-8">
+          
+          {/* ═════════════════════════════════════════════════════════
+              GALLERY - Order 1 on mobile
+             ═════════════════════════════════════════════════════════ */}
+          <div className="order-1 lg:order-none space-y-6 w-full">
           
           {/* Main Showcase Gallery */}
           <div className="flex flex-col-reverse sm:flex-row gap-4 items-start">
@@ -686,7 +691,7 @@ export function ProductDetailPage() {
             PRODUCT HIGHLIGHTS, WHAT'S INSIDE & SPECIFICATIONS
             (Order 3 on mobile, bottom of left column on desktop)
            ═════════════════════════════════════════════════════════ */}
-        <div className="order-3 lg:order-none lg:col-span-7 lg:col-start-1">
+        <div className="order-3 lg:order-none w-full">
           {(product.description || (product.inclusions && product.inclusions.length > 0) || (product.specifications && product.specifications.length > 0)) && (
             <div className="bg-white rounded-3xl border border-zinc-200/90 p-6 shadow-xs space-y-6">
               {product.description && (
@@ -769,11 +774,13 @@ export function ProductDetailPage() {
           )}
         </div>
 
+        </div>
+
         {/* ═════════════════════════════════════════════════════════
             RIGHT COLUMN: DETAILS, TIERED PRICING & ADDONS (Sticky Buy Box)
             (Order 2 on mobile, pushed to right side on desktop)
            ═════════════════════════════════════════════════════════ */}
-        <div className="order-2 lg:order-none lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:row-span-2 w-full space-y-5 lg:sticky lg:top-24">
+        <div className="order-2 lg:order-none lg:col-span-5 w-full space-y-5 lg:sticky lg:top-24">
           
           {/* Header & Badges */}
           <div>
