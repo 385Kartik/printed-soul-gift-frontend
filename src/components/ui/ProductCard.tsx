@@ -289,14 +289,16 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
         </div>
 
         <div>
-          {/* Rating Badge */}
-          <div className="flex items-center gap-1.5 text-xs text-zinc-500 mb-0.5">
-            <span className="inline-flex items-center gap-0.5 bg-emerald-700 text-white text-xs font-bold px-1.5 py-0.5 rounded">
-              <span>{product.ratings?.average ? Number(product.ratings.average).toFixed(1) : "4.9"}</span>
-              <Star className="w-2.5 h-2.5 fill-white" />
-            </span>
-            <span className="text-xs font-semibold text-zinc-400">({product.ratings?.count || 48})</span>
-          </div>
+          {/* Rating Badge (Only shown if real ratings exist) */}
+          {Boolean(product.ratings?.count && product.ratings.count > 0) && (
+            <div className="flex items-center gap-1.5 text-xs text-zinc-500 mb-0.5">
+              <span className="inline-flex items-center gap-0.5 bg-emerald-700 text-white text-xs font-bold px-1.5 py-0.5 rounded">
+                <span>{Number(product.ratings.average).toFixed(1)}</span>
+                <Star className="w-2.5 h-2.5 fill-white" />
+              </span>
+              <span className="text-xs font-semibold text-zinc-400">({product.ratings.count})</span>
+            </div>
+          )}
 
           {/* Pricing Row */}
           <div className="flex items-baseline gap-2 flex-wrap">

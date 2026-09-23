@@ -535,55 +535,6 @@ export function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* ═════════════════════════════════════════════════════════
-          9. VERIFIED BUYER EXPERIENCES (Compact Row)
-         ═════════════════════════════════════════════════════════ */}
-      <section className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 pt-2">
-        <div className="flex items-center justify-between pb-2.5 mb-4 border-b border-zinc-200">
-          <div>
-            <h3 className="text-base sm:text-lg font-bold text-zinc-950">
-              Customer Experiences
-            </h3>
-            <p className="text-xs text-zinc-500">
-              Real reviews from gift recipients across India
-            </p>
-          </div>
-          <div className="flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded text-xs font-bold border border-emerald-200">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>4.9 / 5.0 Rating</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
-          {customerReviews.map((rev, i) => (
-            <div
-              key={i}
-              className="p-4 rounded-xl border border-zinc-200 bg-white flex flex-col justify-between space-y-2.5"
-            >
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-1 text-amber-400">
-                  {[...Array(5)].map((_, s) => (
-                    <Star key={s} className="w-3 h-3 fill-amber-400" />
-                  ))}
-                </div>
-                <h4 className="font-bold text-xs text-zinc-900 leading-snug">&ldquo;{rev.title}&rdquo;</h4>
-                <p className="text-xs text-zinc-600 leading-relaxed">&ldquo;{rev.review}&rdquo;</p>
-              </div>
-
-              <div className="pt-2 border-t border-zinc-100 flex items-center justify-between text-xs">
-                <div>
-                  <span className="font-bold text-zinc-900 block">{rev.name}</span>
-                  <span className="text-[10px] text-zinc-500">{rev.city}</span>
-                </div>
-                <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                  Verified Buyer
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
     </div>
   )
 }

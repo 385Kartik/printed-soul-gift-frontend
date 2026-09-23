@@ -817,14 +817,18 @@ export function ProductDetailPage() {
 
             {/* Rating & In-Stock Status */}
             <div className="flex items-center gap-3 mt-2.5 flex-wrap">
-              <div className="flex items-center gap-1 bg-amber-50 text-zinc-900 px-2 py-0.5 rounded text-xs font-bold border border-amber-200">
-                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                <span>{product.ratings?.average ? Number(product.ratings.average).toFixed(1) : "4.9"}</span>
-              </div>
-              <span className="text-xs text-zinc-500">
-                ({reviews.length > 0 ? reviews.length : "42"} verified reviews)
-              </span>
-              <span className="text-zinc-300">•</span>
+              {reviews.length > 0 && (
+                <>
+                  <div className="flex items-center gap-1 bg-amber-50 text-zinc-900 px-2 py-0.5 rounded text-xs font-bold border border-amber-200">
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                    <span>{Number(product.ratings?.average || 5).toFixed(1)}</span>
+                  </div>
+                  <span className="text-xs text-zinc-500">
+                    ({reviews.length} {reviews.length === 1 ? "review" : "reviews"})
+                  </span>
+                  <span className="text-zinc-300">•</span>
+                </>
+              )}
               <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" /> In Stock &amp; Ready to Ship
               </span>
