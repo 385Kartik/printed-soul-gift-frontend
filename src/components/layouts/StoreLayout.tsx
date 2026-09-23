@@ -693,83 +693,81 @@ export function StoreLayout() {
         {/* Tier 2: Bold Prominent Category Navigation Bar */}
         <div className="hidden lg:block bg-white border-t border-b border-zinc-200/90 relative z-40 shadow-2xs">
           <div className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
-            <div className="flex items-center justify-between gap-3 py-2.5 text-sm sm:text-[15px] font-bold relative overflow-visible">
-              <div className="flex items-center gap-1 xl:gap-2.5">
-                <Link
-                  to="/"
-                  className="px-3 py-1.5 rounded-lg font-extrabold text-amber-700 hover:text-amber-900 hover:bg-amber-50 transition-colors whitespace-nowrap"
-                >
-                  Home
-                </Link>
-                <Link
-                  to="/products"
-                  className="px-3 py-1.5 rounded-lg font-extrabold text-zinc-950 hover:bg-zinc-100 transition-colors whitespace-nowrap flex items-center gap-1.5 bg-zinc-100/90"
-                >
-                  <span className="text-amber-600">⚡</span>
-                  <span>All Gifts</span>
-                </Link>
+            <div className="flex items-center gap-1.5 xl:gap-2.5 py-2 text-sm font-bold overflow-x-auto no-scrollbar">
+              <Link
+                to="/"
+                className="px-2.5 py-1.5 rounded-lg font-extrabold text-amber-700 hover:text-amber-900 hover:bg-amber-50 transition-colors whitespace-nowrap shrink-0 text-[13px]"
+              >
+                Home
+              </Link>
+              <Link
+                to="/products"
+                className="px-2.5 py-1.5 rounded-lg font-extrabold text-zinc-950 hover:bg-zinc-100 transition-colors whitespace-nowrap shrink-0 flex items-center gap-1 bg-zinc-100/90 text-[13px]"
+              >
+                <span className="text-amber-600">⚡</span>
+                <span>All Gifts</span>
+              </Link>
 
-                {navCategories.map((cat: any) => {
-                  const hasSubs = cat.subCategories && cat.subCategories.length > 0
-                  if (hasSubs) {
-                    return (
-                      <div key={cat._id} className="relative group">
+              {navCategories.map((cat: any) => {
+                const hasSubs = cat.subCategories && cat.subCategories.length > 0
+                if (hasSubs) {
+                  return (
+                    <div key={cat._id} className="relative group shrink-0">
+                      <Link
+                        to={`/products?category=${cat.slug}`}
+                        className="px-2.5 py-1.5 rounded-lg font-bold text-zinc-900 hover:text-amber-700 hover:bg-amber-50/80 transition-colors whitespace-nowrap flex items-center gap-1 group-hover:text-amber-700 group-hover:bg-amber-50 text-[13px]"
+                      >
+                        <span>{cat.displayName}</span>
+                        <ChevronDown className="w-3 h-3 text-zinc-500 group-hover:text-amber-600 transition-transform group-hover:rotate-180 shrink-0" />
+                      </Link>
+
+                      {/* Floating Sub-category Dropdown */}
+                      <div className="absolute top-full left-0 mt-1 hidden group-hover:block z-50 min-w-[220px] bg-white rounded-xl shadow-2xl border border-zinc-200/90 py-2.5 animate-in fade-in duration-150">
+                        <div className="px-4 py-1 text-[11px] font-black text-amber-800 uppercase tracking-wider border-b border-zinc-100 mb-1">
+                          {cat.displayName}
+                        </div>
                         <Link
                           to={`/products?category=${cat.slug}`}
-                          className="px-3 py-1.5 rounded-lg font-bold text-zinc-900 hover:text-amber-700 hover:bg-amber-50/80 transition-colors whitespace-nowrap flex items-center gap-1.5 group-hover:text-amber-700 group-hover:bg-amber-50"
+                          className="block px-4 py-1.5 text-xs font-black text-amber-700 hover:bg-amber-50 transition-colors"
                         >
-                          <span>{cat.displayName}</span>
-                          <ChevronDown className="w-3.5 h-3.5 text-zinc-500 group-hover:text-amber-600 transition-transform group-hover:rotate-180" />
+                          All {cat.displayName} →
                         </Link>
-
-                        {/* Floating Sub-category Dropdown */}
-                        <div className="absolute top-full left-0 mt-1 hidden group-hover:block z-50 min-w-[220px] bg-white rounded-xl shadow-2xl border border-zinc-200/90 py-2.5 animate-in fade-in duration-150">
-                          <div className="px-4 py-1 text-[11px] font-black text-amber-800 uppercase tracking-wider border-b border-zinc-100 mb-1">
-                            {cat.displayName}
-                          </div>
+                        {cat.subCategories.map((sub: any) => (
                           <Link
-                            to={`/products?category=${cat.slug}`}
-                            className="block px-4 py-1.5 text-xs font-black text-amber-700 hover:bg-amber-50 transition-colors"
+                            key={sub._id}
+                            to={`/products?category=${cat.slug}&subCategory=${sub.slug}`}
+                            className="block px-4 py-2 text-xs font-bold text-zinc-800 hover:text-amber-950 hover:bg-amber-50 transition-colors"
                           >
-                            All {cat.displayName} →
+                            {sub.displayName}
                           </Link>
-                          {cat.subCategories.map((sub: any) => (
-                            <Link
-                              key={sub._id}
-                              to={`/products?category=${cat.slug}&subCategory=${sub.slug}`}
-                              className="block px-4 py-2 text-xs font-bold text-zinc-800 hover:text-amber-950 hover:bg-amber-50 transition-colors"
-                            >
-                              {sub.displayName}
-                            </Link>
-                          ))}
-                        </div>
+                        ))}
                       </div>
-                    )
-                  }
-
-                  return (
-                    <Link
-                      key={cat._id}
-                      to={`/products?category=${cat.slug}`}
-                      className="px-3 py-1.5 rounded-lg font-bold text-zinc-900 hover:text-amber-700 hover:bg-amber-50/80 transition-colors whitespace-nowrap"
-                    >
-                      {cat.displayName}
-                    </Link>
+                    </div>
                   )
-                })}
-              </div>
+                }
 
-              <div className="flex items-center gap-2 shrink-0">
+                return (
+                  <Link
+                    key={cat._id}
+                    to={`/products?category=${cat.slug}`}
+                    className="px-2.5 py-1.5 rounded-lg font-bold text-zinc-900 hover:text-amber-700 hover:bg-amber-50/80 transition-colors whitespace-nowrap shrink-0 text-[13px]"
+                  >
+                    {cat.displayName}
+                  </Link>
+                )
+              })}
+
+              <div className="flex items-center gap-1.5 shrink-0 ml-auto pl-2">
                 <Link
                   to="/products?category=corporate-gifts"
-                  className="px-3.5 py-1.5 rounded-lg text-xs font-black text-amber-900 bg-amber-100/80 hover:bg-amber-100 border border-amber-300 transition-colors whitespace-nowrap flex items-center gap-1.5 shadow-2xs"
+                  className="px-3 py-1.5 rounded-lg text-xs font-black text-amber-900 bg-amber-100/80 hover:bg-amber-100 border border-amber-300 transition-colors whitespace-nowrap flex items-center gap-1 shadow-2xs"
                 >
                   <span>💼</span>
                   <span>Corporate Catalog</span>
                 </Link>
                 <Link
                   to="/products?category=personalized-gifts"
-                  className="px-3.5 py-1.5 rounded-lg text-xs font-black text-purple-900 bg-purple-100/80 hover:bg-purple-100 border border-purple-300 transition-colors whitespace-nowrap flex items-center gap-1.5 shadow-2xs"
+                  className="px-3 py-1.5 rounded-lg text-xs font-black text-purple-900 bg-purple-100/80 hover:bg-purple-100 border border-purple-300 transition-colors whitespace-nowrap flex items-center gap-1 shadow-2xs"
                 >
                   <span>✨</span>
                   <span>Custom Engraving</span>
