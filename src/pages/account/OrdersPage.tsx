@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { useSearchParams, Link } from "react-router-dom"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { orderApi } from "../../lib/api"
 import { formatPrice, formatDate, getImageUrl } from "../../lib/utils"
 import { useAuth } from "../../context/AuthContext"
@@ -15,6 +15,9 @@ import {
   ChevronDown,
   ChevronUp,
   ShieldCheck,
+  X,
+  AlertTriangle,
+  Loader2,
 } from "lucide-react"
 import { SEO } from "../../components/ui/SEO"
 
@@ -45,6 +48,44 @@ export function OrdersPage() {
   const [searchInput, setSearchInput] = useState(initialQuery)
   const [activeQuery, setActiveQuery] = useState(initialQuery)
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null)
+
+  const queryClient = useQueryClient()
+  const [cancelModalOrder, setCancelModalOrder] = useState<any | null>(null)
+  const [cancelReason, setCancelReason] = useState("Ordered by mistake / Change of mind")
+  const [cancelNotes, setCancelNotes] = useState("")
+  const [isCancelling, setIsCancelling] = useState(false)
+  const [cancelError, setCancelError] = useState("")
+
+  const openCancelModal = (orderToCancel: any) => {
+    setCancelModalOrder(orderToCancel)
+    setCancelReason("Ordered by mistake / Change of mind")
+    setCancelNotes("")
+    setCancelError("")
+  }
+
+  const handleConfirmCancel = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!cancelModalOrder) return
+
+    setIsCancelling(true)
+    setCancelError("")
+
+    try {
+      const fullReason = cancelNotes.trim()
+        ? `${cancelReason} — Note: ${cancelNotes.trim()}`
+        : cancelReason
+      await orderApi.cancelOrder(cancelModalOrder._id, fullReason)
+      setCancelModalOrder(null)
+      queryClient.invalidateQueries({ queryKey: ["my-orders"] })
+      if (activeQuery) {
+        queryClient.invalidateQueries({ queryKey: ["track-order-search", activeQuery] })
+      }
+    } catch (err: any) {
+      setCancelError(err.response?.data?.message || "Failed to cancel order. Please try again.")
+    } finally {
+      setIsCancelling(false)
+    }
+  }
 
   useEffect(() => {
     if (initialQuery) {
@@ -166,6 +207,16 @@ export function OrdersPage() {
               </div>
 
               <div className="flex items-center gap-2">
+                {isAuthenticated &&
+                  (trackedOrder.status === "pending" || trackedOrder.status === "processing") && (
+                    <button
+                      type="button"
+                      onClick={() => openCancelModal(trackedOrder)}
+                      className="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors border border-red-200 cursor-pointer"
+                    >
+                      Cancel Order
+                    </button>
+                  )}
                 <a
                   href={orderApi.getInvoiceUrl(trackedOrder._id)}
                   target="_blank"
@@ -378,15 +429,27 @@ export function OrdersPage() {
                       )}
                     </button>
 
-                    <a
-                      href={orderApi.getInvoiceUrl(order._id)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs font-bold text-zinc-600 hover:text-zinc-900 flex items-center gap-1"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Invoice</span>
-                    </a>
+                    <div className="flex items-center gap-2.5">
+                      {(order.status === "pending" || order.status === "processing") && (
+                        <button
+                          type="button"
+                          onClick={() => openCancelModal(order)}
+                          className="px-3 py-1 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          Cancel Order
+                        </button>
+                      )}
+
+                      <a
+                        href={orderApi.getInvoiceUrl(order._id)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs font-bold text-zinc-600 hover:text-zinc-900 flex items-center gap-1"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Invoice</span>
+                      </a>
+                    </div>
                   </div>
 
                   {/* Inline Expanded Shipment Timeline */}
@@ -463,6 +526,107 @@ export function OrdersPage() {
           </div>
         )}
       </div>
+
+      {/* Customer Cancellation Modal */}
+      {cancelModalOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-zinc-200 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+              <div className="flex items-center gap-2 text-red-600">
+                <AlertTriangle className="w-5 h-5" />
+                <h3 className="font-bold text-base text-zinc-900">
+                  Cancel Order #{cancelModalOrder.orderNumber}?
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCancelModalOrder(null)}
+                className="p-1 rounded-full text-zinc-400 hover:text-zinc-800 hover:bg-zinc-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-zinc-500">
+              Are you sure you want to cancel this order? Any Delhivery logistics package booked for this order will be automatically cancelled.
+            </p>
+
+            <form onSubmit={handleConfirmCancel} className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-zinc-700 mb-1">
+                  Reason for Cancellation:
+                </label>
+                <select
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  className="w-full text-xs font-semibold p-2.5 rounded-xl border border-zinc-300 bg-white focus:outline-hidden focus:ring-2 focus:ring-red-500"
+                >
+                  <option value="Ordered by mistake / Change of mind">
+                    Ordered by mistake / Change of mind
+                  </option>
+                  <option value="Incorrect personalization / name entered">
+                    Incorrect personalization / name entered
+                  </option>
+                  <option value="Need to change delivery address or phone">
+                    Need to change delivery address or phone
+                  </option>
+                  <option value="Delivery timeline is too long">
+                    Delivery timeline is too long
+                  </option>
+                  <option value="Found a better deal / price">
+                    Found a better deal / price
+                  </option>
+                  <option value="Other reason">Other reason (explain below)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-zinc-700 mb-1">
+                  Additional Details (Optional):
+                </label>
+                <textarea
+                  rows={2}
+                  value={cancelNotes}
+                  onChange={(e) => setCancelNotes(e.target.value)}
+                  placeholder="Describe your issue..."
+                  className="w-full text-xs p-2.5 rounded-xl border border-zinc-300 bg-white focus:outline-hidden focus:ring-2 focus:ring-red-500 resize-none"
+                />
+              </div>
+
+              {cancelError && (
+                <p className="text-xs text-red-600 font-bold bg-red-50 p-2.5 rounded-xl border border-red-200">
+                  {cancelError}
+                </p>
+              )}
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  disabled={isCancelling}
+                  onClick={() => setCancelModalOrder(null)}
+                  className="flex-1 py-2.5 rounded-xl border border-zinc-200 hover:bg-zinc-50 text-zinc-700 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Keep Order
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCancelling}
+                  className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+                >
+                  {isCancelling ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Cancelling...</span>
+                    </>
+                  ) : (
+                    <span>Confirm Cancel</span>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

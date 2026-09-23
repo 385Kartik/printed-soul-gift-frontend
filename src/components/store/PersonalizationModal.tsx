@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react"
 import { X, Sparkles, Check, Upload, MessageCircle, AlertCircle } from "lucide-react"
-import { getImageUrl, formatPrice } from "../../lib/utils"
+import { getImageUrl, formatPrice, getZoneTransformStyle } from "../../lib/utils"
 
 export interface EngravingFont {
   id: string
@@ -10,11 +10,13 @@ export interface EngravingFont {
 }
 
 export const ENGRAVING_FONTS: EngravingFont[] = [
-  { id: "elmessiri", name: "Elmessiri", cssClass: "font-elmessiri", sampleText: "Elmessiri" },
-  { id: "signature", name: "Signature", cssClass: "font-signature", sampleText: "Butterlott" },
-  { id: "lobster", name: "Lobster", cssClass: "font-lobster", sampleText: "Lobster" },
-  { id: "pacifico", name: "Pacifico", cssClass: "font-pacifico", sampleText: "Pacifico" },
-  { id: "cursive", name: "Cursive", cssClass: "font-cursive", sampleText: "Cursive" },
+  { id: "sans", name: "Modern Sans (Clean)", cssClass: "font-sans font-black", sampleText: "Modern Clean" },
+  { id: "serif", name: "Classic Luxury (Serif)", cssClass: "font-serif font-bold", sampleText: "Classic Luxury" },
+  { id: "signature", name: "Signature Script", cssClass: "font-signature font-bold", sampleText: "Butterlott" },
+  { id: "lobster", name: "Lobster Calligraphy", cssClass: "font-lobster", sampleText: "Lobster" },
+  { id: "cursive", name: "Playfair Italic", cssClass: "font-cursive", sampleText: "Playfair" },
+  { id: "pacifico", name: "Pacifico Soft", cssClass: "font-pacifico", sampleText: "Pacifico" },
+  { id: "elmessiri", name: "El Messiri", cssClass: "font-elmessiri font-bold", sampleText: "Elmessiri" },
 ]
 
 interface PersonalizationModalProps {
@@ -74,7 +76,7 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
 
   // State for each item's engraving text
   const [itemTexts, setItemTexts] = useState<Record<string, string>>({})
-  const [selectedFontId, setSelectedFontId] = useState<string>("lobster")
+  const [selectedFontId, setSelectedFontId] = useState<string>("sans")
   const [qty, setQty] = useState<number>(currentQuantity || 1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
@@ -96,8 +98,14 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
       setItemTexts(initial)
       setQty(currentQuantity || 1)
       setErrorMessage("")
+      const zoneFont = zones[0]?.fontFamily
+      if (zoneFont) {
+        setSelectedFontId(zoneFont)
+      } else {
+        setSelectedFontId("sans")
+      }
     }
-  }, [isOpen, comboItems, currentQuantity])
+  }, [isOpen, comboItems, currentQuantity, zones])
 
   if (!isOpen || !product) return null
 
@@ -147,6 +155,23 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
       onClose()
     } catch (err: any) {
       setErrorMessage(err?.message || "Failed to add personalized item")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleAddWithoutPersonalization = async () => {
+    try {
+      setIsSubmitting(true)
+      await onAddToCartWithPersonalization({
+        engravingText: "",
+        itemizedEngraving: {},
+        font: "",
+        quantity: qty,
+      })
+      onClose()
+    } catch (err: any) {
+      setErrorMessage(err?.message || "Failed to add plain item")
     } finally {
       setIsSubmitting(false)
     }
@@ -232,7 +257,7 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
                           style={{
                             left: `${matchingZone.x}%`,
                             top: `${matchingZone.y}%`,
-                            transform: `translate(-50%, -50%) rotate(${matchingZone.rotation || 0}deg)`,
+                            transform: getZoneTransformStyle(matchingZone),
                           }}
                           className="absolute z-10 transition-all text-center pointer-events-none whitespace-nowrap"
                         >
@@ -407,24 +432,26 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
                 {/* Corporate Logo Contact Notice */}
                 <div className="p-3 rounded-xl bg-zinc-50 border border-zinc-200/80 text-[11px] text-zinc-600 space-y-1">
                   <p className="font-semibold text-zinc-800">
-                    For company logo on products kindly WhatsApp or mail us:
+                    For company logo on products kindly mail us:
                   </p>
                   <div className="flex items-center gap-3 pt-0.5 font-medium text-amber-800">
+                    {/* WhatsApp contact commented out temporarily
                     <a
-                      href="https://wa.me/919136988133?text=Hi%20Printed%20Soul%20Gift%20Team%2C%20I%20want%20company%20logo%20engraving%20for%20order"
+                      href="https://wa.me/918591721436?text=Hi%20Printed%20Soul%20Gift%20Team%2C%20I%20want%20company%20logo%20engraving%20for%20order"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:underline flex items-center gap-1 font-bold text-emerald-700"
                     >
                       <MessageCircle className="w-3.5 h-3.5" />
-                      <span>+91 91369 88133</span>
+                      <span>+91 85917 21436</span>
                     </a>
                     <span>•</span>
+                    */}
                     <a
-                      href="mailto:support@printedsoulgift.in"
+                      href="mailto:printedsoul3313@gmail.com"
                       className="hover:underline text-zinc-700"
                     >
-                      support@printedsoulgift.in
+                      printedsoul3313@gmail.com
                     </a>
                   </div>
                 </div>
@@ -464,16 +491,27 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
                   </div>
                 </div>
 
-                {/* Big Giftana Golden Add To Cart Button */}
-                <button
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={handleSubmit}
-                  className="w-full py-3.5 px-6 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-98 text-zinc-950 font-extrabold text-sm sm:text-base shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
-                >
-                  <Sparkles className="w-4 h-4 text-zinc-950" />
-                  <span>{isSubmitting ? "Adding..." : "Add To Cart"}</span>
-                </button>
+                {/* Action Buttons */}
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={handleSubmit}
+                    className="w-full py-3.5 px-6 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-98 text-zinc-950 font-extrabold text-sm sm:text-base shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                  >
+                    <Sparkles className="w-4 h-4 text-zinc-950" />
+                    <span>{isSubmitting ? "Adding..." : "Add To Bag With Personalization"}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={handleAddWithoutPersonalization}
+                    className="w-full py-2.5 px-4 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-semibold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <span>Add Without Personalization (Plain Gift)</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

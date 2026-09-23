@@ -12,7 +12,7 @@ import { ProductsPage } from "./pages/store/ProductsPage"
 import { ProductDetailPage } from "./pages/store/ProductDetailPage"
 import { CartPage } from "./pages/store/CartPage"
 import { CheckoutPage } from "./pages/store/CheckoutPage"
-import { OrderSuccessPage } from "./pages/store/OrderSuccessPage"
+import { PaymentStatusPage } from "./pages/store/PaymentStatusPage"
 import { AccountDashboardPage } from "./pages/account/AccountDashboardPage"
 import { OrdersPage } from "./pages/account/OrdersPage"
 import { AddressesPage } from "./pages/account/AddressesPage"
@@ -61,7 +61,8 @@ export default function App() {
                   <Route path="products/:slug" element={<ProductDetailPage />} />
                   <Route path="cart" element={<CartPage />} />
                   <Route path="checkout" element={<CheckoutPage />} />
-                  <Route path="order-success/:id" element={<OrderSuccessPage />} />
+                  <Route path="order-success/:id" element={<PaymentStatusPage />} />
+                  <Route path="payment-status" element={<PaymentStatusPage />} />
                   <Route path="track" element={<Navigate to="/account/orders" replace />} />
 
                 {/* Protected Account Routes */}

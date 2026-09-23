@@ -23,7 +23,7 @@ export function CheckoutPage() {
   const [street, setStreet] = useState("")
   const [city, setCity] = useState("")
   const [state, setState] = useState("Maharashtra")
-  const [pincode, setPincode] = useState("")
+  const [pincode, setPincode] = useState(() => localStorage.getItem("psg_user_pincode") || "")
   const [notes, setNotes] = useState("")
 
   // Saved addresses
@@ -89,6 +89,8 @@ export function CheckoutPage() {
           quantity: i.quantity,
           customText: i.customText,
           customImage: i.customImage,
+          selectedTier: i.selectedTier,
+          selectedAddons: i.selectedAddons,
         })),
         shippingAddress: {
           fullName,

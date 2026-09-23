@@ -39,7 +39,7 @@ export const ImageZoomLens: React.FC<ImageZoomLensProps> = ({
       className={`relative overflow-hidden cursor-crosshair select-none ${className}`}
     >
       <div
-        className="w-full h-full transition-transform duration-200 ease-out will-change-transform"
+        className="w-full h-full relative transition-transform duration-200 ease-out will-change-transform"
         style={{
           transformOrigin: `${origin.x}% ${origin.y}%`,
           transform: isHovered ? `scale(${zoomLevel})` : "scale(1)",

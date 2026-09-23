@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react"
 import { Link } from "react-router-dom"
 import { Star, ShoppingBag, Check, Sparkles, Heart } from "lucide-react"
-import { formatPrice, getImageUrl } from "../../lib/utils"
+import { formatPrice, getImageUrl, getZoneTransformStyle } from "../../lib/utils"
 import { useCart } from "../../context/CartContext"
 import { useWishlist } from "../../context/WishlistContext"
 
@@ -71,7 +71,7 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
       return
     }
     if (product.stock > 0) {
-      await addToCart(product._id, 1)
+      await addToCart(product._id, 1, undefined, undefined, undefined, undefined, product)
       setAdded(true)
       setTimeout(() => setAdded(false), 2000)
     }
@@ -86,14 +86,115 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
       {/* Product Image (Direct, Borderless, Crisp with Hover Video or Image) */}
       <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-zinc-100 block border border-zinc-100/80">
         <Link to={`/products/${product.slug}`} className="block w-full h-full relative">
-          {/* Base Product Image */}
-          <img
-            src={imgSrc}
-            alt={product.name}
-            loading="lazy"
-            onError={() => setImgSrc(FALLBACK_IMAGE)}
-            className="w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-105"
-          />
+          {/* Base Product Image & Laser Engraving Preview (zoomed together synchronously on hover) */}
+          <div className="w-full h-full relative transition-all duration-500 ease-out group-hover:scale-105 origin-center">
+            {/* Base Product Image */}
+            <img
+              src={imgSrc}
+              alt={product.name}
+              loading="lazy"
+              onError={() => setImgSrc(FALLBACK_IMAGE)}
+              className="w-full h-full object-cover"
+            />
+
+            {/* Laser Engraving Preview on Product Card */}
+            {product.isPersonalizable && product.personalizationZones && product.personalizationZones.length > 0 && (
+              <div
+                className={`absolute inset-0 pointer-events-none z-10 select-none overflow-hidden transition-opacity duration-300 ${
+                  hasHoverMedia && isCardHovered ? "opacity-0 pointer-events-none" : "opacity-100"
+                }`}
+              >
+                {product.personalizationZones.map((zone: any, idx: number) => {
+                  const textValue = zone.sampleText || "Your Name"
+                  const curvature = zone.curveRadius ?? 35
+                  const arcHeight = (curvature / 100) * 36
+                  const pathId = `card-curve-${product._id || "prod"}-${zone.id || idx}`
+                  const textColor = zone.textColor || "#ffffff"
+                  const scaledFontSize = Math.max(8, Math.round((zone.fontSize || 16) * 0.58))
+                  const cardFontClass =
+                    zone.fontFamily === "signature"
+                      ? "font-signature font-bold"
+                      : zone.fontFamily === "serif"
+                      ? "font-serif font-bold"
+                      : zone.fontFamily === "lobster"
+                      ? "font-lobster"
+                      : zone.fontFamily === "pacifico"
+                      ? "font-pacifico"
+                      : zone.fontFamily === "cursive"
+                      ? "font-cursive"
+                      : zone.fontFamily === "elmessiri"
+                      ? "font-elmessiri font-bold"
+                      : "font-sans font-black"
+
+                  return (
+                    <div
+                      key={zone.id || idx}
+                      style={{
+                        position: "absolute",
+                        left: `${zone.x}%`,
+                        top: `${zone.y}%`,
+                        transform: getZoneTransformStyle(zone),
+                      }}
+                      className="text-center pointer-events-none whitespace-nowrap"
+                    >
+                      {zone.isCurved ? (
+                        <div
+                          style={{
+                            backgroundColor: zone.hasBackground
+                              ? zone.backgroundColor || "rgba(0,0,0,0.5)"
+                              : "transparent",
+                            padding: zone.hasBackground ? "2px 4px" : "0",
+                            borderRadius: zone.hasBackground ? "4px" : "0",
+                          }}
+                        >
+                          <svg viewBox="0 0 240 80" className="w-28 sm:w-32 h-10 overflow-visible">
+                            <defs>
+                              <path
+                                id={pathId}
+                                d={`M 10,${40 + arcHeight} Q 120,${40 - arcHeight} 230,${40 + arcHeight}`}
+                                fill="none"
+                              />
+                            </defs>
+                            <text
+                              fill={textColor}
+                              fontSize={scaledFontSize * 1.5}
+                              fontWeight="900"
+                              textAnchor="middle"
+                              className={cardFontClass}
+                              style={{
+                                filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.95))",
+                                letterSpacing: "0.04em",
+                              }}
+                            >
+                              <textPath href={`#${pathId}`} startOffset="50%">
+                                {textValue}
+                              </textPath>
+                            </text>
+                          </svg>
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            backgroundColor: zone.hasBackground
+                              ? zone.backgroundColor || "rgba(0,0,0,0.5)"
+                              : "transparent",
+                            padding: zone.hasBackground ? "2px 6px" : "0",
+                            borderRadius: zone.hasBackground ? "4px" : "0",
+                            color: textColor,
+                            fontSize: `${scaledFontSize}px`,
+                            textShadow: "0 1px 2px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.85)",
+                          }}
+                          className={`font-black tracking-wide ${cardFontClass}`}
+                        >
+                          {textValue}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
 
           {/* On-Hover Video Clip */}
           {hasHoverVideo && (
@@ -122,90 +223,6 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
             />
           )}
         </Link>
-
-        {/* Laser Engraving Preview on Product Card */}
-        {product.isPersonalizable && product.personalizationZones && product.personalizationZones.length > 0 && (
-          <div
-            className={`absolute inset-0 pointer-events-none z-10 select-none overflow-hidden transition-opacity duration-300 ${
-              hasHoverMedia && isCardHovered ? "opacity-0 pointer-events-none" : "opacity-100"
-            }`}
-          >
-            {product.personalizationZones.map((zone: any, idx: number) => {
-              const textValue = zone.sampleText || "Your Name"
-              const curvature = zone.curveRadius ?? 35
-              const arcHeight = (curvature / 100) * 36
-              const pathId = `card-curve-${product._id || "prod"}-${zone.id || idx}`
-              const textColor = zone.textColor || "#ffffff"
-              const scaledFontSize = Math.max(8, Math.round((zone.fontSize || 16) * 0.58))
-
-              return (
-                <div
-                  key={zone.id || idx}
-                  style={{
-                    position: "absolute",
-                    left: `${zone.x}%`,
-                    top: `${zone.y}%`,
-                    transform: `translate(-50%, -50%) rotate(${zone.rotation || 0}deg)`,
-                  }}
-                  className="text-center pointer-events-none whitespace-nowrap"
-                >
-                  {zone.isCurved ? (
-                    <div
-                      style={{
-                        backgroundColor: zone.hasBackground
-                          ? zone.backgroundColor || "rgba(0,0,0,0.5)"
-                          : "transparent",
-                        padding: zone.hasBackground ? "2px 4px" : "0",
-                        borderRadius: zone.hasBackground ? "4px" : "0",
-                      }}
-                    >
-                      <svg viewBox="0 0 240 80" className="w-28 sm:w-32 h-10 overflow-visible">
-                        <defs>
-                          <path
-                            id={pathId}
-                            d={`M 10,${40 + arcHeight} Q 120,${40 - arcHeight} 230,${40 + arcHeight}`}
-                            fill="none"
-                          />
-                        </defs>
-                        <text
-                          fill={textColor}
-                          fontSize={scaledFontSize * 1.5}
-                          fontWeight="900"
-                          textAnchor="middle"
-                          className="font-lobster"
-                          style={{
-                            filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.95))",
-                            letterSpacing: "0.04em",
-                          }}
-                        >
-                          <textPath href={`#${pathId}`} startOffset="50%">
-                            {textValue}
-                          </textPath>
-                        </text>
-                      </svg>
-                    </div>
-                  ) : (
-                    <div
-                      style={{
-                        backgroundColor: zone.hasBackground
-                          ? zone.backgroundColor || "rgba(0,0,0,0.5)"
-                          : "transparent",
-                        padding: zone.hasBackground ? "2px 6px" : "0",
-                        borderRadius: zone.hasBackground ? "4px" : "0",
-                        color: textColor,
-                        fontSize: `${scaledFontSize}px`,
-                        textShadow: "0 1px 2px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.85)",
-                      }}
-                      className="font-black tracking-wide font-lobster"
-                    >
-                      {textValue}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
 
         {/* Top Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1 z-10 pointer-events-none">
@@ -258,14 +275,14 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
       <div className="pt-2.5 flex flex-col flex-1 justify-between gap-1.5">
         <div>
           {/* Category Tag */}
-          <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block mb-0.5">
+          <span className="text-xs font-bold text-amber-700 uppercase tracking-wider block mb-0.5">
             {product.category?.name || "GIFT SET"}
           </span>
 
           {/* Product Title */}
           <Link
             to={`/products/${product.slug}`}
-            className="font-medium text-xs sm:text-[13px] text-zinc-900 group-hover:text-amber-700 transition-colors line-clamp-2 leading-snug"
+            className="font-bold text-sm sm:text-base text-zinc-950 group-hover:text-amber-700 transition-colors line-clamp-2 leading-snug"
           >
             {product.name}
           </Link>
@@ -273,25 +290,25 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
 
         <div>
           {/* Rating Badge */}
-          <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 mb-0.5">
-            <span className="inline-flex items-center gap-0.5 bg-emerald-700 text-white text-[10px] font-bold px-1.5 py-0.2 rounded">
+          <div className="flex items-center gap-1.5 text-xs text-zinc-500 mb-0.5">
+            <span className="inline-flex items-center gap-0.5 bg-emerald-700 text-white text-xs font-bold px-1.5 py-0.5 rounded">
               <span>{product.ratings?.average ? Number(product.ratings.average).toFixed(1) : "4.9"}</span>
               <Star className="w-2.5 h-2.5 fill-white" />
             </span>
-            <span className="text-[10px] text-zinc-400">({product.ratings?.count || 48})</span>
+            <span className="text-xs font-semibold text-zinc-400">({product.ratings?.count || 48})</span>
           </div>
 
           {/* Pricing Row */}
           <div className="flex items-baseline gap-2 flex-wrap">
-            <span className="font-bold text-base sm:text-lg text-zinc-950 tracking-tight font-sans">
+            <span className="font-black text-lg sm:text-xl text-zinc-950 tracking-tight font-sans">
               {formatPrice(product.price)}
             </span>
             {product.comparePrice && product.comparePrice > product.price && (
               <>
-                <span className="text-xs text-zinc-400 line-through">
+                <span className="text-xs text-zinc-400 line-through font-medium">
                   {formatPrice(product.comparePrice)}
                 </span>
-                <span className="text-[10px] font-semibold text-emerald-700">
+                <span className="text-xs font-bold text-emerald-700">
                   Save {formatPrice(product.comparePrice - product.price)}
                 </span>
               </>
@@ -299,7 +316,7 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
           </div>
 
           {/* Delivery tag */}
-          <p className="text-[10px] text-zinc-400 font-normal mt-0.5">
+          <p className="text-[11px] text-zinc-500 font-medium mt-0.5">
             🚚 Free Delivery across India
           </p>
         </div>
@@ -308,7 +325,7 @@ export function ProductCard({ product, className = "" }: ProductCardProps) {
         <button
           onClick={handleQuickAdd}
           disabled={product.stock === 0}
-          className={`w-full py-2 px-3 rounded-lg font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer mt-1 active:scale-[0.98] ${
+          className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm transition-colors flex items-center justify-center gap-1.5 cursor-pointer mt-1 active:scale-[0.98] ${
             added
               ? "bg-emerald-700 text-white"
               : product.isPersonalizable

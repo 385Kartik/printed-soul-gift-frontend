@@ -11,6 +11,7 @@ export function ProductsPage() {
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
 
   const activeCategory = searchParams.get("category") || ""
+  const activeSubCategory = searchParams.get("subCategory") || ""
   const searchQuery = searchParams.get("search") || ""
   const minPrice = searchParams.get("minPrice") || ""
   const maxPrice = searchParams.get("maxPrice") || ""
@@ -26,10 +27,11 @@ export function ProductsPage() {
 
   // Fetch products
   const { data: productsData, isLoading } = useQuery({
-    queryKey: ["products-list", activeCategory, searchQuery, minPrice, maxPrice, sort, page],
+    queryKey: ["products-list", activeCategory, activeSubCategory, searchQuery, minPrice, maxPrice, sort, page],
     queryFn: () =>
       catalogApi.getProducts({
         category: activeCategory || undefined,
+        subCategory: activeSubCategory || undefined,
         search: searchQuery || undefined,
         minPrice: minPrice || undefined,
         maxPrice: maxPrice || undefined,
@@ -49,6 +51,18 @@ export function ProductsPage() {
     } else {
       next.delete(key)
     }
+    next.set("page", "1")
+    setSearchParams(next)
+  }
+
+  const setCategoryFilter = (catSlug: string, subSlug?: string) => {
+    const next = new URLSearchParams(searchParams)
+    if (catSlug) next.set("category", catSlug)
+    else next.delete("category")
+
+    if (subSlug) next.set("subCategory", subSlug)
+    else next.delete("subCategory")
+
     next.set("page", "1")
     setSearchParams(next)
   }
@@ -120,7 +134,7 @@ export function ProductsPage() {
             <span className="text-xs font-bold uppercase tracking-wider text-zinc-900 flex items-center gap-2">
               <Filter className="w-3.5 h-3.5 text-amber-700" /> Filter Catalog
             </span>
-            {(activeCategory || minPrice || maxPrice || searchQuery) && (
+            {(activeCategory || activeSubCategory || minPrice || maxPrice || searchQuery) && (
               <button
                 onClick={clearAllFilters}
                 className="text-[11px] font-semibold text-amber-700 hover:underline"
@@ -131,34 +145,74 @@ export function ProductsPage() {
           </div>
 
           {/* Category Filter */}
-          <div>
-            <h4 className="text-xs font-bold text-zinc-800 uppercase tracking-wider mb-2">Category</h4>
-            <div className="space-y-1">
+  <div>
+    <h4 className="text-xs font-bold text-zinc-800 uppercase tracking-wider mb-2">Category</h4>
+    <div className="space-y-1">
+      <button
+        onClick={() => setCategoryFilter("", "")}
+        className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+          !activeCategory && !activeSubCategory
+            ? "bg-amber-50 text-amber-900 font-bold border border-amber-200"
+            : "text-zinc-600 hover:bg-zinc-50"
+        }`}
+      >
+        All Categories
+      </button>
+      {categories
+        .filter((c: any) => !c.parentCategory)
+        .map((c: any) => {
+          const subCats = categories.filter((sub: any) => {
+            const pId = typeof sub.parentCategory === "object" ? sub.parentCategory?._id : sub.parentCategory
+            return pId === c._id
+          })
+          const isMainActive = activeCategory === c.slug && !activeSubCategory
+          const hasActiveSub = subCats.some((s: any) => s.slug === activeSubCategory)
+
+          return (
+            <div key={c._id} className="space-y-0.5">
               <button
-                onClick={() => setFilter("category", "")}
-                className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  !activeCategory
+                onClick={() => setCategoryFilter(c.slug, "")}
+                className={`w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center justify-between ${
+                  isMainActive
                     ? "bg-amber-50 text-amber-900 font-bold border border-amber-200"
-                    : "text-zinc-600 hover:bg-zinc-50"
+                    : hasActiveSub
+                    ? "text-amber-900 font-bold"
+                    : "text-zinc-700 hover:bg-zinc-50 font-semibold"
                 }`}
               >
-                All Categories
+                <span>{c.name}</span>
+                {subCats.length > 0 && (
+                  <span className="text-[10px] text-zinc-400 font-normal">
+                    {subCats.length}
+                  </span>
+                )}
               </button>
-              {categories.map((c: any) => (
-                <button
-                  key={c._id}
-                  onClick={() => setFilter("category", c.slug)}
-                  className={`w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors ${
-                    activeCategory === c.slug
-                      ? "bg-amber-50 text-amber-900 font-bold border border-amber-200"
-                      : "text-zinc-600 hover:bg-zinc-50 font-medium"
-                  }`}
-                >
-                  {c.name}
-                </button>
-              ))}
+
+              {subCats.length > 0 && (activeCategory === c.slug || hasActiveSub) && (
+                <div className="pl-4 space-y-0.5 border-l-2 border-amber-200 ml-3 py-0.5">
+                  {subCats.map((sub: any) => {
+                    const isSubActive = activeSubCategory === sub.slug
+                    return (
+                      <button
+                        key={sub._id}
+                        onClick={() => setCategoryFilter(c.slug, sub.slug)}
+                        className={`w-full text-left px-2.5 py-1 rounded-md text-[11px] transition-colors ${
+                          isSubActive
+                            ? "bg-amber-100/80 text-amber-950 font-bold border border-amber-300"
+                            : "text-zinc-600 hover:text-amber-800 hover:bg-amber-50/60 font-medium"
+                        }`}
+                      >
+                        └ {sub.name}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
             </div>
-          </div>
+          )
+        })}
+    </div>
+  </div>
 
           {/* Budget Range Filter */}
           <div>
@@ -197,8 +251,8 @@ export function ProductsPage() {
         {/* Product Grid */}
         <div className="lg:col-span-9 xl:col-span-10">
           {isLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {[...Array(10)].map((_, i) => (
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+              {[...Array(8)].map((_, i) => (
                 <div key={i} className="aspect-square rounded-xl bg-zinc-100 animate-pulse" />
               ))}
             </div>
@@ -217,7 +271,7 @@ export function ProductsPage() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-3.5 sm:gap-4 md:gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
               {products.map((p: any) => (
                 <ProductCard key={p._id} product={p} />
               ))}

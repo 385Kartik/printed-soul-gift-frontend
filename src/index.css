@@ -8,6 +8,10 @@
   }
 }
 
+.font-logo {
+  font-family: 'Bodoni Moda', 'Playfair Display', Georgia, serif;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

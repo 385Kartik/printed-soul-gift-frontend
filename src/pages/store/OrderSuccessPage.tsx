@@ -1,10 +1,16 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
 import { CheckCircle2, ArrowRight, Package, Truck, Download } from "lucide-react"
 import { SEO } from "../../components/ui/SEO"
+import { useCart } from "../../context/CartContext"
 
 export function OrderSuccessPage() {
   const { id } = useParams<{ id: string }>()
+  const { clearCart } = useCart()
+
+  useEffect(() => {
+    clearCart().catch(() => {})
+  }, [])
 
   return (
     <div className="max-w-xl mx-auto px-4 py-20 text-center space-y-6">

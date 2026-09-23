@@ -25,9 +25,10 @@ import {
   Award,
   Clock,
   Layers,
+  MapPin,
 } from "lucide-react"
 import { catalogApi, reviewApi, uploadApi } from "../../lib/api"
-import { formatPrice, getImageUrl } from "../../lib/utils"
+import { formatPrice, getImageUrl, getZoneTransformStyle } from "../../lib/utils"
 import { useCart } from "../../context/CartContext"
 import { useWishlist } from "../../context/WishlistContext"
 import { useAuth } from "../../context/AuthContext"
@@ -64,7 +65,17 @@ export function ProductDetailPage() {
   // Giftana Personalization Studio Modal
   const [showPersonalizeModal, setShowPersonalizeModal] = useState(false)
   const [itemizedEngraving, setItemizedEngraving] = useState<Record<string, string>>({})
-  const [selectedFontClass, setSelectedFontClass] = useState<string>("font-lobster")
+  
+  // Helper to get font CSS class from font ID or name
+  const getEngravingFontClass = (fontIdOrName?: string) => {
+    if (!fontIdOrName || fontIdOrName === "sans") return "font-sans font-black"
+    const match = ENGRAVING_FONTS.find(
+      (f) => f.id === fontIdOrName || f.name.toLowerCase() === fontIdOrName.toLowerCase()
+    )
+    return match ? match.cssClass : "font-sans font-black"
+  }
+
+  const [selectedFontClass, setSelectedFontClass] = useState<string>("font-sans font-black")
 
   // Selected Tier
   const [selectedTierIndex, setSelectedTierIndex] = useState(0)
@@ -94,6 +105,51 @@ export function ProductDetailPage() {
   const [reviewComment, setReviewComment] = useState("")
   const [submittingReview, setSubmittingReview] = useState(false)
 
+  // Delivery Pincode Estimator State
+  const [pincode, setPincode] = useState(() => localStorage.getItem("psg_user_pincode") || "")
+  const [pincodeStatus, setPincodeStatus] = useState<{
+    checked: boolean
+    valid: boolean
+    message: string
+    estimatedDate?: string
+  }>(() => {
+    const saved = localStorage.getItem("psg_user_pincode")
+    if (saved && /^\d{6}$/.test(saved)) {
+      const d = new Date()
+      d.setDate(d.getDate() + 4)
+      return {
+        checked: true,
+        valid: true,
+        message: "Free Express Delivery Available",
+        estimatedDate: d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" }),
+      }
+    }
+    return { checked: false, valid: false, message: "" }
+  })
+
+  const handleCheckPincode = (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    const clean = pincode.replace(/\D/g, "").slice(0, 6)
+    if (clean.length === 6) {
+      const d = new Date()
+      d.setDate(d.getDate() + 4)
+      const dateStr = d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })
+      setPincodeStatus({
+        checked: true,
+        valid: true,
+        message: "Free Express Delivery available via Delhivery One",
+        estimatedDate: dateStr,
+      })
+      localStorage.setItem("psg_user_pincode", clean)
+    } else {
+      setPincodeStatus({
+        checked: true,
+        valid: false,
+        message: "Please enter a valid 6-digit Indian PIN code",
+      })
+    }
+  }
+
   // 1. Fetch Product
   const { data: productData, isLoading } = useQuery({
     queryKey: ["product", slug],
@@ -102,6 +158,14 @@ export function ProductDetailPage() {
   })
   const product = productData?.data?.data
   const isWishlisted = product ? isInWishlist(product._id) : false
+
+  // Sync initial font with product's zone configuration
+  useEffect(() => {
+    const zoneFont = product?.personalizationZones?.[0]?.fontFamily
+    if (zoneFont) {
+      setSelectedFontClass(getEngravingFontClass(zoneFont))
+    }
+  }, [product])
 
   // 2. Fetch Applicable Addons for this product
   const { data: addonsData } = useQuery({
@@ -307,7 +371,8 @@ export function ProductDetailPage() {
       isPersonalizable ? customText.trim() : undefined,
       isPersonalizable ? customImage : undefined,
       selectedTierPayload,
-      selectedAddonsPayload
+      selectedAddonsPayload,
+      product
     )
     setAdded(true)
     setTimeout(() => setAdded(false), 2500)
@@ -338,27 +403,24 @@ export function ProductDetailPage() {
       data.engravingText,
       data.logoUrl || (isPersonalizable ? customImage : undefined),
       selectedTierPayload,
-      selectedAddonsPayload
+      selectedAddonsPayload,
+      product
     )
     setAdded(true)
     setTimeout(() => setAdded(false), 2500)
   }
 
   const handleBuyNow = async () => {
-    if (isPersonalizable && !customText.trim()) {
-      setShowPersonalizeModal(true)
-      return
-    }
-
     const { selectedTierPayload, selectedAddonsPayload } = prepareCartPayload()
 
     await addToCart(
       product._id,
       quantity,
-      isPersonalizable ? customText.trim() : undefined,
+      isPersonalizable && customText.trim() ? customText.trim() : undefined,
       isPersonalizable ? customImage : undefined,
       selectedTierPayload,
-      selectedAddonsPayload
+      selectedAddonsPayload,
+      product
     )
     navigate("/checkout")
   }
@@ -471,26 +533,27 @@ export function ProductDetailPage() {
             )}
 
             {/* Main Showcase Image (With Mouse-Tracking Zoom Lens & Chevrons) */}
-            <div className="flex-1 w-full aspect-square sm:aspect-[4/3] lg:aspect-square max-h-[620px] rounded-3xl overflow-hidden bg-zinc-50 border border-zinc-200 relative group shadow-sm">
+            <div className="flex-1 w-full aspect-square max-w-[620px] mx-auto rounded-3xl overflow-hidden bg-zinc-50 border border-zinc-200 relative group shadow-sm">
               <ImageZoomLens
                 src={getImageUrl(images[activeImageIdx])}
                 alt={product.name}
                 className="w-full h-full"
                 zoomLevel={2.2}
               >
-                {/* Live Laser Engraving Overlay on Main Showcase Image */}
+                {/* Live Laser Engraving Overlay — Inside ImageZoomLens so it zooms in/out with the lens */}
                 {isPersonalizable && activeImageIdx === 0 && product?.personalizationZones?.length > 0 && (
                   <div className="absolute inset-0 pointer-events-none z-10 select-none overflow-hidden">
                     {product.personalizationZones.map((zone: any, idx: number) => {
                       const textValue =
                         itemizedEngraving[zone.name] ||
-                        (product.personalizationZones.length === 1 && customText && !customText.includes("•")
+                        (customText && !customText.includes("•")
                           ? customText
                           : (zone.sampleText || "Your Name"))
                       const curvature = zone.curveRadius ?? 35
                       const arcHeight = (curvature / 100) * 36
                       const pathId = `showcase-curve-${zone.id || idx}`
                       const textColor = zone.textColor || "#ffffff"
+                      const activeFontClass = selectedFontClass || getEngravingFontClass(zone.fontFamily)
 
                       return (
                         <div
@@ -499,7 +562,7 @@ export function ProductDetailPage() {
                             position: "absolute",
                             left: `${zone.x}%`,
                             top: `${zone.y}%`,
-                            transform: `translate(-50%, -50%) rotate(${zone.rotation || 0}deg)`,
+                            transform: getZoneTransformStyle(zone),
                           }}
                           className="text-center pointer-events-none whitespace-nowrap"
                         >
@@ -526,7 +589,7 @@ export function ProductDetailPage() {
                                   fontSize={zone.fontSize || 18}
                                   fontWeight="900"
                                   textAnchor="middle"
-                                  className={selectedFontClass}
+                                  className={activeFontClass}
                                   style={{
                                     filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.95))",
                                     letterSpacing: "0.04em",
@@ -550,7 +613,7 @@ export function ProductDetailPage() {
                                 fontSize: `${zone.fontSize || 18}px`,
                                 textShadow: "0 1px 3px rgba(0,0,0,0.95), 0 0 2px rgba(0,0,0,0.85)",
                               }}
-                              className={`font-black tracking-wide ${selectedFontClass}`}
+                              className={`font-black tracking-wide ${activeFontClass}`}
                             >
                               {textValue}
                             </div>
@@ -1058,45 +1121,91 @@ export function ProductDetailPage() {
               </div>
 
               {/* Quick Inline Input */}
-              <div>
-                <label className="block text-xs font-semibold text-zinc-800 mb-1.5">
-                  {product.personalizationPrompt || "Name or Custom Text to Engrave"} *
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={customText}
-                    onChange={(e) => setCustomText(e.target.value)}
-                    placeholder="e.g. Radhe & Krishna"
-                    className="flex-1 px-3.5 py-2.5 rounded-lg border border-amber-300 bg-white text-xs font-medium text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPersonalizeModal(true)}
-                    className="px-3.5 py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold text-xs rounded-lg border border-amber-300 transition-colors shrink-0 flex items-center gap-1 cursor-pointer"
-                    title="Open Live Font & Mockup Studio"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-amber-700" />
-                    <span>Fonts & Preview</span>
-                  </button>
-                </div>
-                <span className="text-[10px] text-zinc-500 block mt-1">
-                  Precision laser engraved permanently on the gift.
-                </span>
-
-                {/* Live Laser Engraving Preview */}
-                {customText.trim() && (
-                  <div className="mt-2.5 p-3 rounded-xl bg-amber-100/70 border border-amber-300 flex items-center justify-between text-xs animate-in fade-in">
-                    <span className="text-amber-900 font-semibold flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                      <span>Engraving Text:</span>
-                    </span>
-                    <span className="font-serif font-black text-amber-950 tracking-wider text-sm italic bg-white/95 px-3 py-1 rounded-md border border-amber-300 shadow-2xs">
-                      {customText.trim()}
-                    </span>
+              {/* Multi-zone or Single Input */}
+              {product.personalizationZones && product.personalizationZones.length > 1 ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {product.personalizationZones.map((zone: any, zIdx: number) => (
+                      <div key={zone.id || zIdx} className="space-y-1">
+                        <label className="block text-[11px] font-bold text-zinc-800">
+                          {zone.name} Engraving:
+                        </label>
+                        <input
+                          type="text"
+                          value={itemizedEngraving[zone.name] || ""}
+                          onChange={(e) => {
+                            const val = e.target.value
+                            setItemizedEngraving((prev) => {
+                              const updated = { ...prev, [zone.name]: val }
+                              const summary = Object.entries(updated)
+                                .filter(([_, t]) => typeof t === "string" && t.trim())
+                                .map(([k, t]) => `${k}: ${(t as string).trim()}`)
+                                .join(" • ")
+                              setCustomText(summary)
+                              return updated
+                            })
+                          }}
+                          placeholder={zone.sampleText || "Your Name"}
+                          className="w-full px-3 py-2 rounded-lg border border-amber-300 bg-white text-xs font-semibold text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600"
+                        />
+                      </div>
+                    ))}
                   </div>
-                )}
-              </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-zinc-500">
+                      Laser engraved permanently on each item.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowPersonalizeModal(true)}
+                      className="text-[11px] font-bold text-amber-800 hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Studio &amp; Fonts</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-800 mb-1.5">
+                    {product.personalizationPrompt || "Name or Custom Text to Engrave"}
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customText}
+                      onChange={(e) => setCustomText(e.target.value)}
+                      placeholder="e.g. Radhe & Krishna"
+                      className="flex-1 px-3.5 py-2.5 rounded-lg border border-amber-300 bg-white text-xs font-medium text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPersonalizeModal(true)}
+                      className="px-3.5 py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold text-xs rounded-lg border border-amber-300 transition-colors shrink-0 flex items-center gap-1 cursor-pointer"
+                      title="Open Live Font & Mockup Studio"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-700" />
+                      <span>Fonts & Preview</span>
+                    </button>
+                  </div>
+                  <span className="text-[10px] text-zinc-500 block mt-1">
+                    Precision laser engraved permanently on the gift.
+                  </span>
+
+                  {/* Live Laser Engraving Preview */}
+                  {customText.trim() && (
+                    <div className="mt-2.5 p-3 rounded-xl bg-amber-100/70 border border-amber-300 flex items-center justify-between text-xs animate-in fade-in">
+                      <span className="text-amber-900 font-semibold flex items-center gap-1">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Engraving Text:</span>
+                      </span>
+                      <span className="font-serif font-black text-amber-950 tracking-wider text-sm italic bg-white/95 px-3 py-1 rounded-md border border-amber-300 shadow-2xs">
+                        {customText.trim()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Logo / Image Upload ONLY IF allowCustomImageUpload */}
               {allowCustomImage && (
@@ -1202,17 +1311,27 @@ export function ProductDetailPage() {
             </div>
 
             {/* ═════════════════════════════════════════════════════════
-                PRIMARY ACTION: GIFTANA "PERSONALIZE IT" BUTTON OR BUY NOW
+                PRIMARY ACTIONS: "PERSONALIZE IT" & "BUY NOW"
                ═════════════════════════════════════════════════════════ */}
             {isPersonalizable ? (
-              <button
-                type="button"
-                onClick={() => setShowPersonalizeModal(true)}
-                className="w-full py-4 px-6 rounded-2xl font-black text-sm sm:text-base bg-amber-500 hover:bg-amber-600 text-zinc-950 shadow-lg active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Sparkles className="w-5 h-5 text-zinc-950" />
-                <span>Personalize It</span>
-              </button>
+              <div className="flex flex-col gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowPersonalizeModal(true)}
+                  className="w-full py-3.5 px-6 rounded-2xl font-black text-sm sm:text-base bg-amber-500 hover:bg-amber-600 text-zinc-950 shadow-md active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Sparkles className="w-5 h-5 text-zinc-950" />
+                  <span>Personalize &amp; Preview Studio</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBuyNow}
+                  className="w-full py-3 px-6 rounded-xl font-bold text-xs sm:text-sm bg-zinc-900 hover:bg-black text-white shadow-xs active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Zap className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  <span>Buy Now • Fast Checkout</span>
+                </button>
+              </div>
             ) : (
               <button
                 type="button"
@@ -1225,14 +1344,65 @@ export function ProductDetailPage() {
             )}
           </div>
 
-          {/* Delivery & Trust Reassurances */}
-          <div className="space-y-2 pt-2">
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center gap-3 text-xs text-slate-700">
-              <Truck className="w-4 h-4 text-amber-700 shrink-0" />
-              <span>
-                <strong>Fast Dispatch:</strong> Ships in 24–48 hours across India via{" "}
-                <strong>Delhivery Express</strong>.
-              </span>
+          {/* Interactive Delivery Estimator & Trust Reassurances */}
+          <div className="space-y-3 pt-2">
+            {/* Pincode Estimator Card */}
+            <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/90 space-y-2.5">
+              <div className="flex items-center justify-between text-xs font-bold text-zinc-900">
+                <span className="flex items-center gap-1.5">
+                  <Truck className="w-4 h-4 text-amber-600" />
+                  <span>Delhivery Delivery Estimate</span>
+                </span>
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
+                  100% Free Express Delivery
+                </span>
+              </div>
+
+              <form onSubmit={handleCheckPincode} className="flex gap-2">
+                <div className="relative flex-1">
+                  <MapPin className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={pincode}
+                    onChange={(e) => setPincode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="Enter 6-digit Pincode"
+                    className="w-full pl-8 pr-3 py-2 text-xs rounded-xl border border-zinc-200 bg-white font-mono focus:outline-hidden focus:ring-1 focus:ring-amber-500 font-semibold"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-zinc-900 hover:bg-black text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer"
+                >
+                  Check
+                </button>
+              </form>
+
+              {pincodeStatus.checked && (
+                <div
+                  className={`text-[11px] p-2.5 rounded-xl flex items-start gap-2 animate-in fade-in duration-200 ${
+                    pincodeStatus.valid
+                      ? "bg-emerald-50 text-emerald-900 border border-emerald-200/80"
+                      : "bg-rose-50 text-rose-800 border border-rose-200"
+                  }`}
+                >
+                  {pincodeStatus.valid ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-bold">
+                          Expected Delivery by {pincodeStatus.estimatedDate}
+                        </p>
+                        <p className="text-[10px] text-emerald-700 mt-0.5">
+                          Dispatches in 24 hrs via <strong>Delhivery Express</strong> • Free Pan-India Shipping
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="font-medium">{pincodeStatus.message}</p>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-3 pt-1 text-xs text-zinc-600">

@@ -36,10 +36,14 @@ export function StoreLayout() {
   const location = useLocation()
 
   const [searchInput, setSearchInput] = useState("")
+  const [searchSelectedCategory, setSearchSelectedCategory] = useState("")
+  const [searchCategoryDropdownOpen, setSearchCategoryDropdownOpen] = useState(false)
+  const [categorySearchInput, setCategorySearchInput] = useState("")
   const [showSearchDropdown, setShowSearchDropdown] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const searchContainerRef = useRef<HTMLDivElement>(null)
+  const searchCatDropdownRef = useRef<HTMLDivElement>(null)
   const mobileSearchRef = useRef<HTMLDivElement>(null)
 
   const POPULAR_SEARCHES = [
@@ -72,10 +76,17 @@ export function StoreLayout() {
       ) {
         setShowSearchDropdown(false)
       }
+      if (
+        searchCatDropdownRef.current &&
+        !searchCatDropdownRef.current.contains(target)
+      ) {
+        setSearchCategoryDropdownOpen(false)
+      }
     }
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setShowSearchDropdown(false)
+        setSearchCategoryDropdownOpen(false)
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
@@ -89,6 +100,7 @@ export function StoreLayout() {
   // Close search dropdown on route change
   useEffect(() => {
     setShowSearchDropdown(false)
+    setSearchCategoryDropdownOpen(false)
   }, [location.pathname])
 
   // Fetch dynamic navbar categories configured by admin
@@ -99,6 +111,19 @@ export function StoreLayout() {
   })
 
   const navCategories = navbarCategoriesData?.data?.data || []
+
+  // Selected Category Object
+  const selectedCategoryObj = React.useMemo(() => {
+    if (!searchSelectedCategory) return null
+    for (const cat of navCategories) {
+      if (cat.slug === searchSelectedCategory) return cat
+      if (cat.subCategories) {
+        const sub = cat.subCategories.find((s: any) => s.slug === searchSelectedCategory)
+        if (sub) return sub
+      }
+    }
+    return null
+  }, [searchSelectedCategory, navCategories])
 
   const matchingCategories = React.useMemo(() => {
     const query = searchInput.trim().toLowerCase()
@@ -112,10 +137,12 @@ export function StoreLayout() {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (searchInput.trim()) {
-      setShowSearchDropdown(false)
-      navigate(`/products?search=${encodeURIComponent(searchInput.trim())}`)
-    }
+    setShowSearchDropdown(false)
+    setSearchCategoryDropdownOpen(false)
+    const params = new URLSearchParams()
+    if (searchInput.trim()) params.set("search", searchInput.trim())
+    if (searchSelectedCategory) params.set("category", searchSelectedCategory)
+    navigate(`/products?${params.toString()}`)
   }
 
   const handleQuickSearch = (term: string) => {
@@ -140,6 +167,17 @@ export function StoreLayout() {
         <span className="hidden md:inline text-zinc-300">🚚 Free Express Delhivery Pan-India</span>
         <span className="hidden lg:inline text-zinc-600">•</span>
         <span className="hidden lg:inline text-zinc-400">🎁 Luxury Satin Gift Box Included</span>
+        {/* WhatsApp link commented out temporarily
+        <span className="hidden sm:inline text-zinc-600">•</span>
+        <a
+          href="https://wa.me/918591721436"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1 transition-colors"
+        >
+          <span>WhatsApp: 85917 21436</span>
+        </a>
+        */}
       </div>
 
       {/* ═════════════════════════════════════════════════════════
@@ -148,56 +186,154 @@ export function StoreLayout() {
       <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-xs">
         {/* Top Tier: Logo, Central Search, Account, Cart */}
         <div className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
-          <div className="flex items-center justify-between h-16 sm:h-20 gap-4 lg:gap-8">
+          <div className="flex items-center justify-between py-2 sm:py-2.5 gap-4 lg:gap-8 h-20">
             
-            {/* Brand Logo */}
-            <Link to="/" className="flex items-center gap-3 shrink-0 group">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-500 flex items-center justify-center text-white shadow-md shadow-amber-600/20 group-hover:scale-105 transition-transform">
-                <Gift className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-serif font-black text-xl tracking-tight text-zinc-950 leading-none">
+            {/* Brand Logo: Clean PS Monogram Emblem + Bodoni Moda Luxury Typography */}
+            <Link to="/" className="flex items-center gap-3 shrink-0 group py-1">
+              <img
+                src="/logo-emblem.png"
+                alt="Printed Soul Gift"
+                className="h-12 sm:h-14 lg:h-16 w-auto object-contain group-hover:scale-105 transition-transform shrink-0"
+              />
+              <div className="flex flex-col justify-center">
+                <span className="font-logo font-extrabold text-2xl sm:text-3xl tracking-[0.04em] text-zinc-950 leading-none">
                   PRINTED SOUL
                 </span>
-                <span className="text-[9px] tracking-[0.25em] font-extrabold text-amber-600 uppercase leading-tight mt-1">
+                <span className="text-[10px] sm:text-xs tracking-[0.3em] font-black text-amber-600 uppercase leading-tight mt-1.5">
                   LUXURY GIFTING
                 </span>
               </div>
             </Link>
 
-            {/* Central Search Bar with Smart Autocomplete & Popular Searches */}
-            <div ref={searchContainerRef} className="hidden md:flex flex-1 max-w-xl relative items-center">
+            {/* Central Search Bar with Left Category Selector Dropdown & Smart Autocomplete */}
+            <div ref={searchContainerRef} className="hidden md:flex flex-1 max-w-2xl lg:max-w-3xl relative items-center">
               <form
                 onSubmit={handleSearchSubmit}
-                className="w-full relative flex items-center"
+                className="w-full relative flex items-center bg-zinc-50 hover:bg-zinc-100/80 focus-within:bg-white rounded-xl border-2 border-zinc-900 shadow-sm transition-all"
               >
-                <Search className="w-4 h-4 text-zinc-400 absolute left-4 pointer-events-none" />
-                <input
-                  type="text"
-                  value={searchInput}
-                  onChange={(e) => {
-                    setSearchInput(e.target.value)
-                    setShowSearchDropdown(true)
-                  }}
-                  onFocus={() => setShowSearchDropdown(true)}
-                  placeholder="Search hampers, personalized gifts, corporate kits..."
-                  className="w-full pl-11 pr-28 py-2.5 bg-zinc-50 hover:bg-zinc-100/70 focus:bg-white text-xs sm:text-sm text-zinc-900 rounded-full border border-zinc-200 focus:border-amber-600 focus:outline-none focus:ring-4 focus:ring-amber-500/10 transition-all placeholder:text-zinc-400"
-                />
-                {searchInput && (
+                {/* Left Category Selector Dropdown */}
+                <div ref={searchCatDropdownRef} className="relative border-r border-zinc-300 shrink-0">
                   <button
                     type="button"
-                    onClick={() => setSearchInput("")}
-                    className="absolute right-20 text-zinc-400 hover:text-zinc-700 p-1 cursor-pointer"
-                    title="Clear search"
+                    onClick={() => setSearchCategoryDropdownOpen(!searchCategoryDropdownOpen)}
+                    className="h-11 px-3.5 flex items-center gap-2 text-xs font-bold text-zinc-800 hover:bg-zinc-200/50 rounded-l-lg transition-colors cursor-pointer"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <span className="truncate max-w-[120px]">
+                      {selectedCategoryObj ? selectedCategoryObj.displayName || selectedCategoryObj.name : "All Category"}
+                    </span>
+                    <ChevronDown className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
                   </button>
-                )}
+
+                  {/* Category Dropdown Menu with Search */}
+                  {searchCategoryDropdownOpen && (
+                    <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-zinc-200 overflow-hidden z-[60] py-2 animate-in fade-in duration-150">
+                      <div className="px-3 pb-2 border-b border-zinc-100">
+                        <input
+                          type="text"
+                          value={categorySearchInput}
+                          onChange={(e) => setCategorySearchInput(e.target.value)}
+                          placeholder="Filter categories..."
+                          className="w-full px-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-lg text-xs focus:outline-none focus:border-amber-600"
+                        />
+                      </div>
+                      <div className="max-h-64 overflow-y-auto divide-y divide-zinc-50">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSearchSelectedCategory("")
+                            setSearchCategoryDropdownOpen(false)
+                          }}
+                          className={`w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-amber-50 transition-colors ${
+                            !searchSelectedCategory ? "bg-amber-50 text-amber-900" : "text-zinc-800"
+                          }`}
+                        >
+                          All Categories
+                        </button>
+
+                        {navCategories
+                          .filter((c: any) =>
+                            !categorySearchInput.trim() ||
+                            c.displayName?.toLowerCase().includes(categorySearchInput.toLowerCase()) ||
+                            c.subCategories?.some((sub: any) =>
+                              sub.displayName?.toLowerCase().includes(categorySearchInput.toLowerCase())
+                            )
+                          )
+                          .map((cat: any) => (
+                            <div key={cat._id} className="py-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSearchSelectedCategory(cat.slug)
+                                  setSearchCategoryDropdownOpen(false)
+                                }}
+                                className={`w-full text-left px-3.5 py-1.5 text-xs font-bold hover:bg-amber-50 transition-colors ${
+                                  searchSelectedCategory === cat.slug
+                                    ? "bg-amber-50 text-amber-900"
+                                    : "text-zinc-900"
+                                }`}
+                              >
+                                {cat.displayName}
+                              </button>
+                              {cat.subCategories && cat.subCategories.length > 0 && (
+                                <div className="pl-3">
+                                  {cat.subCategories.map((sub: any) => (
+                                    <button
+                                      key={sub._id}
+                                      type="button"
+                                      onClick={() => {
+                                        setSearchSelectedCategory(sub.slug)
+                                        setSearchCategoryDropdownOpen(false)
+                                      }}
+                                      className={`w-full text-left px-3.5 py-1 text-[11px] hover:bg-amber-50 transition-colors ${
+                                        searchSelectedCategory === sub.slug
+                                          ? "bg-amber-50 text-amber-900 font-bold"
+                                          : "text-zinc-600 font-medium"
+                                      }`}
+                                    >
+                                      - {sub.displayName}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Search Text Input */}
+                <div className="flex-1 relative flex items-center">
+                  <input
+                    type="text"
+                    value={searchInput}
+                    onChange={(e) => {
+                      setSearchInput(e.target.value)
+                      setShowSearchDropdown(true)
+                    }}
+                    onFocus={() => setShowSearchDropdown(true)}
+                    placeholder="Search hampers, personalized gifts, corporate kits..."
+                    className="w-full h-11 pl-4 pr-10 text-xs sm:text-sm font-medium text-zinc-900 bg-transparent focus:outline-none placeholder:text-zinc-400"
+                  />
+                  {searchInput && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchInput("")}
+                      className="absolute right-3 text-zinc-400 hover:text-zinc-700 p-1 cursor-pointer"
+                      title="Clear search"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Submit Button */}
                 <button
                   type="submit"
-                  className="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-zinc-900 hover:bg-black text-white text-xs font-semibold rounded-full flex items-center justify-center transition-colors cursor-pointer"
+                  className="h-11 px-5 bg-zinc-950 hover:bg-black text-white text-xs font-bold uppercase tracking-wider rounded-r-lg flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
                 >
-                  Search
+                  <Search className="w-4 h-4 text-amber-400" />
+                  <span className="hidden sm:inline">Search</span>
                 </button>
               </form>
 
@@ -558,41 +694,86 @@ export function StoreLayout() {
           </div>
         </div>
 
-        {/* Tier 2: Sleek Modern Category Strip (Clean, Light, Luxury) */}
-        <div className="hidden lg:block bg-white border-t border-zinc-100">
+        {/* Tier 2: Bold Prominent Category Navigation Bar */}
+        <div className="hidden lg:block bg-white border-t border-b border-zinc-200/90 relative z-40 shadow-2xs">
           <div className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
-            <div className="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar py-2 text-xs">
-              <div className="flex items-center gap-1 xl:gap-2">
+            <div className="flex items-center justify-between gap-3 py-2.5 text-sm sm:text-[15px] font-bold relative overflow-visible">
+              <div className="flex items-center gap-1 xl:gap-2.5">
+                <Link
+                  to="/"
+                  className="px-3 py-1.5 rounded-lg font-extrabold text-amber-700 hover:text-amber-900 hover:bg-amber-50 transition-colors whitespace-nowrap"
+                >
+                  Home
+                </Link>
                 <Link
                   to="/products"
-                  className="px-3 py-1.5 rounded-full font-bold text-zinc-900 hover:bg-zinc-100 transition-colors whitespace-nowrap flex items-center gap-1.5 bg-zinc-100/80"
+                  className="px-3 py-1.5 rounded-lg font-extrabold text-zinc-950 hover:bg-zinc-100 transition-colors whitespace-nowrap flex items-center gap-1.5 bg-zinc-100/90"
                 >
                   <span className="text-amber-600">⚡</span>
                   <span>All Gifts</span>
                 </Link>
 
-                {navCategories.map((cat: any) => (
-                  <Link
-                    key={cat._id}
-                    to={`/products?category=${cat.slug}`}
-                    className="px-3 py-1.5 rounded-full font-medium text-zinc-700 hover:text-amber-700 hover:bg-amber-50/60 transition-colors whitespace-nowrap text-xs"
-                  >
-                    {cat.displayName}
-                  </Link>
-                ))}
+                {navCategories.map((cat: any) => {
+                  const hasSubs = cat.subCategories && cat.subCategories.length > 0
+                  if (hasSubs) {
+                    return (
+                      <div key={cat._id} className="relative group">
+                        <Link
+                          to={`/products?category=${cat.slug}`}
+                          className="px-3 py-1.5 rounded-lg font-bold text-zinc-900 hover:text-amber-700 hover:bg-amber-50/80 transition-colors whitespace-nowrap flex items-center gap-1.5 group-hover:text-amber-700 group-hover:bg-amber-50"
+                        >
+                          <span>{cat.displayName}</span>
+                          <ChevronDown className="w-3.5 h-3.5 text-zinc-500 group-hover:text-amber-600 transition-transform group-hover:rotate-180" />
+                        </Link>
+
+                        {/* Floating Sub-category Dropdown */}
+                        <div className="absolute top-full left-0 mt-1 hidden group-hover:block z-50 min-w-[220px] bg-white rounded-xl shadow-2xl border border-zinc-200/90 py-2.5 animate-in fade-in duration-150">
+                          <div className="px-4 py-1 text-[11px] font-black text-amber-800 uppercase tracking-wider border-b border-zinc-100 mb-1">
+                            {cat.displayName}
+                          </div>
+                          <Link
+                            to={`/products?category=${cat.slug}`}
+                            className="block px-4 py-1.5 text-xs font-black text-amber-700 hover:bg-amber-50 transition-colors"
+                          >
+                            All {cat.displayName} →
+                          </Link>
+                          {cat.subCategories.map((sub: any) => (
+                            <Link
+                              key={sub._id}
+                              to={`/products?category=${cat.slug}&subCategory=${sub.slug}`}
+                              className="block px-4 py-2 text-xs font-bold text-zinc-800 hover:text-amber-950 hover:bg-amber-50 transition-colors"
+                            >
+                              {sub.displayName}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <Link
+                      key={cat._id}
+                      to={`/products?category=${cat.slug}`}
+                      className="px-3 py-1.5 rounded-lg font-bold text-zinc-900 hover:text-amber-700 hover:bg-amber-50/80 transition-colors whitespace-nowrap"
+                    >
+                      {cat.displayName}
+                    </Link>
+                  )
+                })}
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
                 <Link
                   to="/products?category=corporate-gifts"
-                  className="px-3 py-1.5 rounded-full text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 transition-colors whitespace-nowrap flex items-center gap-1.5"
+                  className="px-3.5 py-1.5 rounded-lg text-xs font-black text-amber-900 bg-amber-100/80 hover:bg-amber-100 border border-amber-300 transition-colors whitespace-nowrap flex items-center gap-1.5 shadow-2xs"
                 >
                   <span>💼</span>
                   <span>Corporate Catalog</span>
                 </Link>
                 <Link
                   to="/products?category=personalized-gifts"
-                  className="px-3 py-1.5 rounded-full text-xs font-semibold text-purple-800 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 transition-colors whitespace-nowrap flex items-center gap-1.5"
+                  className="px-3.5 py-1.5 rounded-lg text-xs font-black text-purple-900 bg-purple-100/80 hover:bg-purple-100 border border-purple-300 transition-colors whitespace-nowrap flex items-center gap-1.5 shadow-2xs"
                 >
                   <span>✨</span>
                   <span>Custom Engraving</span>
@@ -604,7 +785,7 @@ export function StoreLayout() {
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-slate-200 bg-white p-4 space-y-1 shadow-lg">
+          <div className="lg:hidden border-t border-slate-200 bg-white p-4 space-y-1 shadow-lg max-h-[80vh] overflow-y-auto">
             <Link
               to="/"
               onClick={() => setMobileMenuOpen(false)}
@@ -619,16 +800,35 @@ export function StoreLayout() {
             >
               All Gifts Catalog
             </Link>
-            {navCategories.map((cat: any) => (
-              <Link
-                key={cat._id}
-                to={`/products?category=${cat.slug}`}
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-lg"
-              >
-                {cat.displayName}
-              </Link>
-            ))}
+            {navCategories.map((cat: any) => {
+              const hasSubs = cat.subCategories && cat.subCategories.length > 0
+              return (
+                <div key={cat._id} className="space-y-0.5">
+                  <Link
+                    to={`/products?category=${cat.slug}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50 rounded-lg flex items-center justify-between"
+                  >
+                    <span>{cat.displayName}</span>
+                    {hasSubs && <span className="text-xs text-amber-600 font-bold">{cat.subCategories.length} sub</span>}
+                  </Link>
+                  {hasSubs && (
+                    <div className="pl-6 space-y-0.5 border-l-2 border-amber-200 ml-3">
+                      {cat.subCategories.map((sub: any) => (
+                        <Link
+                          key={sub._id}
+                          to={`/products?category=${cat.slug}&subCategory=${sub.slug}`}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-amber-700 hover:bg-amber-50 rounded-md"
+                        >
+                          └ {sub.displayName}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
             <button
               onClick={() => {
                 setMobileMenuOpen(false)
@@ -673,22 +873,41 @@ export function StoreLayout() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 pb-12 border-b border-slate-800">
             {/* Brand Column */}
             <div className="lg:col-span-2 space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-amber-600 flex items-center justify-center text-white font-bold">
-                  <Gift className="w-4 h-4 text-white" />
+              <div className="flex items-center gap-3">
+                <div className="bg-white p-1 rounded-xl">
+                  <img src="/logo.png" alt="Printed Soul Gift" className="w-9 h-9 object-contain rounded-lg" />
                 </div>
-                <span className="text-white font-serif font-bold text-lg tracking-tight">
-                  PRINTED SOUL GIFT
-                </span>
+                <div>
+                  <span className="text-white font-serif font-bold text-lg tracking-tight block">
+                    PRINTED SOUL GIFT
+                  </span>
+                  <span className="text-[9px] tracking-[0.2em] font-bold text-amber-400 uppercase">
+                    LUXURY GIFTING &amp; CELEBRATIONS
+                  </span>
+                </div>
               </div>
               <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
                 India&apos;s trusted gifting brand for luxury festive hampers, corporate onboarding kits,
                 and precision laser-engraved personalized keepsakes.
               </p>
-              <div className="pt-1 text-xs text-slate-500 space-y-1">
-                <p>📍 Mumbai, Maharashtra, India</p>
-                <p>✉️ support@printedsoulgift.com</p>
-                <p>🚚 Dispatch &amp; Logistics: Delhivery Express One</p>
+              <div className="pt-1 text-xs text-slate-400 space-y-1.5">
+                <p className="flex items-center gap-1.5">
+                  <span>📍</span> <span>Mumbai, Maharashtra, India</span>
+                </p>
+                <p className="flex items-center gap-1.5">
+                  <span>✉️</span> <a href="mailto:printedsoul3313@gmail.com" className="hover:text-amber-400 transition-colors">printedsoul3313@gmail.com</a>
+                </p>
+                {/* Phone & WhatsApp commented out temporarily
+                <p className="flex items-center gap-1.5">
+                  <span>📞</span> <a href="tel:+918591721436" className="hover:text-amber-400 transition-colors">+91 85917 21436</a>
+                </p>
+                <p className="flex items-center gap-1.5">
+                  <span>💬</span> <a href="https://wa.me/918591721436" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium">WhatsApp: 85917 21436</a>
+                </p>
+                */}
+                <p className="flex items-center gap-1.5 text-slate-500">
+                  <span>🚚</span> <span>Dispatch &amp; Logistics: Delhivery Express</span>
+                </p>
               </div>
             </div>
 
@@ -844,7 +1063,8 @@ export function StoreLayout() {
       <AuthModal />
       <CartDrawer />
       <WishlistDrawer />
-      <FloatingWhatsApp />
+      {/* FloatingWhatsApp commented out temporarily until new number is provided */}
+      {/* <FloatingWhatsApp /> */}
     </div>
   )
 }
