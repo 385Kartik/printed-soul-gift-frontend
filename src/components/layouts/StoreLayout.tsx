@@ -166,8 +166,6 @@ export function StoreLayout() {
         <span className="hidden md:inline text-zinc-600">•</span>
         <span className="hidden md:inline text-zinc-300">🚚 Free Express Delhivery Pan-India</span>
         <span className="hidden lg:inline text-zinc-600">•</span>
-        <span className="hidden lg:inline text-zinc-400">🎁 Luxury Satin Gift Box Included</span>
-        {/* WhatsApp link commented out temporarily
         <span className="hidden sm:inline text-zinc-600">•</span>
         <a
           href="https://wa.me/918591721436"
@@ -177,7 +175,6 @@ export function StoreLayout() {
         >
           <span>WhatsApp: 85917 21436</span>
         </a>
-        */}
       </div>
 
       {/* ═════════════════════════════════════════════════════════
@@ -897,14 +894,12 @@ export function StoreLayout() {
                 <p className="flex items-center gap-1.5">
                   <span>✉️</span> <a href="mailto:printedsoul3313@gmail.com" className="hover:text-amber-400 transition-colors">printedsoul3313@gmail.com</a>
                 </p>
-                {/* Phone & WhatsApp commented out temporarily
                 <p className="flex items-center gap-1.5">
                   <span>📞</span> <a href="tel:+918591721436" className="hover:text-amber-400 transition-colors">+91 85917 21436</a>
                 </p>
                 <p className="flex items-center gap-1.5">
                   <span>💬</span> <a href="https://wa.me/918591721436" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium">WhatsApp: 85917 21436</a>
                 </p>
-                */}
                 <p className="flex items-center gap-1.5 text-slate-500">
                   <span>🚚</span> <span>Dispatch &amp; Logistics: Delhivery Express</span>
                 </p>
@@ -1063,8 +1058,7 @@ export function StoreLayout() {
       <AuthModal />
       <CartDrawer />
       <WishlistDrawer />
-      {/* FloatingWhatsApp commented out temporarily until new number is provided */}
-      {/* <FloatingWhatsApp /> */}
+      <FloatingWhatsApp />
     </div>
   )
 }

@@ -2,8 +2,6 @@ import React from "react"
 import { MessageCircle } from "lucide-react"
 
 export function FloatingWhatsApp() {
-  // WhatsApp widget temporarily commented out until new number is provided
-  /*
   const phoneNumber = "918591721436" // Official WhatsApp Support
   const message = encodeURIComponent("Hi Printed Soul Gift! I have a question regarding a gift order.")
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`
@@ -22,6 +20,4 @@ export function FloatingWhatsApp() {
       </a>
     </div>
   )
-  */
-  return null
 }

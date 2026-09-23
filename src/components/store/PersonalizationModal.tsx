@@ -435,7 +435,6 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
                     For company logo on products kindly mail us:
                   </p>
                   <div className="flex items-center gap-3 pt-0.5 font-medium text-amber-800">
-                    {/* WhatsApp contact commented out temporarily
                     <a
                       href="https://wa.me/918591721436?text=Hi%20Printed%20Soul%20Gift%20Team%2C%20I%20want%20company%20logo%20engraving%20for%20order"
                       target="_blank"
@@ -446,7 +445,6 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
                       <span>+91 85917 21436</span>
                     </a>
                     <span>•</span>
-                    */}
                     <a
                       href="mailto:printedsoul3313@gmail.com"
                       className="hover:underline text-zinc-700"
