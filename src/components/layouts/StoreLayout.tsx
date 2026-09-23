@@ -152,7 +152,7 @@ export function StoreLayout() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-zinc-900 font-sans">
+    <div className="min-h-screen flex flex-col bg-white text-zinc-900 font-sans overflow-x-hidden w-full">
       {/* ═════════════════════════════════════════════════════════
           0. TOP ANNOUNCEMENT TICKER (Subtle, High Conversion)
          ═════════════════════════════════════════════════════════ */}
