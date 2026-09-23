@@ -45,7 +45,11 @@ export const ImageZoomLens: React.FC<ImageZoomLensProps> = ({
           transform: isHovered ? `scale(${zoomLevel})` : "scale(1)",
         }}
       >
-        <img src={src} alt={alt} className="w-full h-full object-cover" />
+        {src.toLowerCase().endsWith(".mp4") || src.toLowerCase().endsWith(".webm") ? (
+          <video src={src} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+        ) : (
+          <img src={src} alt={alt} className="w-full h-full object-cover" />
+        )}
         {children}
       </div>
 

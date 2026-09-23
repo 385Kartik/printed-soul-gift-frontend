@@ -242,8 +242,8 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
                       LIVE LASER ENGRAVING OVERLAYS (CLEAN TEXT)
                      ═════════════════════════════════════════════════ */}
                   {comboItems.map((item: string, idx: number) => {
-                    const textValue = itemTexts[item] || "Your Name"
                     const matchingZone = zones.find((z: any) => z.name === item) || zones[idx]
+                    const textValue = itemTexts[item] || (matchingZone?.sampleText || "")
 
                     if (matchingZone) {
                       const curvature = matchingZone.curveRadius ?? 35
@@ -392,8 +392,8 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
                         value={itemTexts[item] || ""}
                         maxLength={maxCharsPerItem}
                         onChange={(e) => handleItemTextChange(item, e.target.value)}
-                        placeholder="Your Name"
-                        className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs font-bold text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all"
+                        placeholder="Enter text here..."
+                        className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs font-bold text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all"
                       />
                     </div>
                   )

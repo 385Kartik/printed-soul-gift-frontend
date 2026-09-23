@@ -498,12 +498,12 @@ export function ProductDetailPage() {
       </nav>
 
       {/* Main Grid: Gallery & Specifications (Left 7 cols) & Buy Box (Right 5 cols) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12 items-start">
+      <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 xl:gap-12 items-start">
         
         {/* ═════════════════════════════════════════════════════════
-            LEFT COLUMN: GALLERY + GIFT HIGHLIGHTS & SPECIFICATIONS
+            LEFT COLUMN (GALLERY) - Order 1 on mobile
            ═════════════════════════════════════════════════════════ */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="order-1 lg:order-none lg:col-span-7 space-y-6 w-full">
           
           {/* Main Showcase Gallery */}
           <div className="flex flex-col-reverse sm:flex-row gap-4 items-start">
@@ -521,12 +521,16 @@ export function ProductDetailPage() {
                         : "border-zinc-200 hover:border-zinc-400 opacity-80 hover:opacity-100"
                     }`}
                   >
-                    <img
-                      src={getImageUrl(img)}
-                      alt=""
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
+                    {img.toLowerCase().endsWith(".mp4") || img.toLowerCase().endsWith(".webm") ? (
+                      <video src={getImageUrl(img)} className="w-full h-full object-cover" muted loop playsInline />
+                    ) : (
+                      <img
+                        src={getImageUrl(img)}
+                        alt=""
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    )}
                   </button>
                 ))}
               </div>
@@ -548,7 +552,7 @@ export function ProductDetailPage() {
                         itemizedEngraving[zone.name] ||
                         (customText && !customText.includes("•")
                           ? customText
-                          : (zone.sampleText || "Your Name"))
+                          : (zone.sampleText || ""))
                       const curvature = zone.curveRadius ?? 35
                       const arcHeight = (curvature / 100) * 36
                       const pathId = `showcase-curve-${zone.id || idx}`
@@ -676,133 +680,100 @@ export function ProductDetailPage() {
               )}
             </div>
           </div>
+        </div>
 
-          {/* ═════════════════════════════════════════════════════════
-              LUXURY GIFTING TRUST CARDS
-             ═════════════════════════════════════════════════════════ */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-center space-y-1">
-              <Sparkles className="w-5 h-5 text-amber-600 mx-auto" />
-              <h4 className="text-xs font-bold text-amber-950">Free Engraving</h4>
-              <p className="text-[10px] text-amber-800">Precision Laser Tech</p>
-            </div>
-            <div className="p-3.5 rounded-2xl bg-rose-50/70 border border-rose-200/80 text-center space-y-1">
-              <Gift className="w-5 h-5 text-rose-600 mx-auto" />
-              <h4 className="text-xs font-bold text-rose-950">Luxury Gift Box</h4>
-              <p className="text-[10px] text-rose-800">Satin Finish Ribbon</p>
-            </div>
-            <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 text-center space-y-1">
-              <Truck className="w-5 h-5 text-emerald-600 mx-auto" />
-              <h4 className="text-xs font-bold text-emerald-950">Express Dispatch</h4>
-              <p className="text-[10px] text-emerald-800">24–48h Delhivery</p>
-            </div>
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-1">
-              <ShieldCheck className="w-5 h-5 text-slate-700 mx-auto" />
-              <h4 className="text-xs font-bold text-slate-950">Damage-Free</h4>
-              <p className="text-[10px] text-slate-700">100% Transit Safe</p>
-            </div>
-          </div>
+        {/* ═════════════════════════════════════════════════════════
+            PRODUCT HIGHLIGHTS, WHAT'S INSIDE & SPECIFICATIONS
+            (Order 3 on mobile, bottom of left column on desktop)
+           ═════════════════════════════════════════════════════════ */}
+        <div className="order-3 lg:order-none lg:col-span-7 lg:col-start-1">
+          {(product.description || (product.inclusions && product.inclusions.length > 0) || (product.specifications && product.specifications.length > 0)) && (
+            <div className="bg-white rounded-3xl border border-zinc-200/90 p-6 shadow-xs space-y-6">
+              {product.description && (
+                <div>
+                  <h3 className="text-base font-serif font-black text-zinc-950 flex items-center gap-2">
+                    <Award className="w-5 h-5 text-amber-600" />
+                    <span>What Makes This Gift Special</span>
+                  </h3>
+                  <p className="text-xs text-zinc-600 leading-relaxed mt-2.5">
+                    {product.description}
+                  </p>
+                </div>
+              )}
 
-          {/* ═════════════════════════════════════════════════════════
-              PRODUCT HIGHLIGHTS, WHAT'S INSIDE & SPECIFICATIONS
-             ═════════════════════════════════════════════════════════ */}
-          <div className="bg-white rounded-3xl border border-zinc-200/90 p-6 shadow-xs space-y-6">
-            <div>
-              <h3 className="text-base font-serif font-black text-zinc-950 flex items-center gap-2">
-                <Award className="w-5 h-5 text-amber-600" />
-                <span>What Makes This Gift Special</span>
-              </h3>
-              <p className="text-xs text-zinc-600 leading-relaxed mt-2.5">
-                {product.description ||
-                  "Handcrafted with exquisite attention to detail, this luxury gift hamper represents the highest standard of modern personalized gifting. Designed to create a lasting impression for your clients, family, or loved ones."}
-              </p>
-            </div>
+              {/* Inclusions & Specifications */}
+              {((product.inclusions && product.inclusions.length > 0) || (product.specifications && product.specifications.length > 0)) && (
+                <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${product.description ? 'pt-4 border-t border-zinc-100' : ''}`}>
+                  
+                  {product.inclusions && product.inclusions.length > 0 && (
+                    <div className="space-y-2.5">
+                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-zinc-900 flex items-center gap-1.5">
+                        <Package className="w-4 h-4 text-amber-600" />
+                        <span>Hamper Inclusions</span>
+                      </h4>
+                      <ul className="space-y-1.5 text-xs text-zinc-600">
+                        {product.inclusions.map((inc: string, idx: number) => (
+                          <li key={idx} className="flex items-center gap-2">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <span>{inc}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
-            {/* Inclusions & Highlights */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-zinc-100">
-              <div className="space-y-2.5">
-                <h4 className="text-xs font-extrabold uppercase tracking-wider text-zinc-900 flex items-center gap-1.5">
-                  <Package className="w-4 h-4 text-amber-600" />
-                  <span>Hamper Inclusions</span>
-                </h4>
-                <ul className="space-y-1.5 text-xs text-zinc-600">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>1 × {product.name}</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>Laser Engraved Custom Name / Message</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>Deluxe Hardbound Satin Lined Gift Box</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>Handwritten Greeting Card Envelope</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="space-y-2.5">
-                <h4 className="text-xs font-extrabold uppercase tracking-wider text-zinc-900 flex items-center gap-1.5">
-                  <Layers className="w-4 h-4 text-amber-600" />
-                  <span>Key Specifications</span>
-                </h4>
-                <div className="space-y-1.5 text-xs text-zinc-600">
-                  <div className="flex justify-between py-1 border-b border-zinc-100">
-                    <span className="text-zinc-400">Material</span>
-                    <span className="font-semibold text-zinc-800">Food-Grade SS 304 / Premium</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-zinc-100">
-                    <span className="text-zinc-400">Finish</span>
-                    <span className="font-semibold text-zinc-800">Matte Anti-Scratch Powder Coat</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-zinc-100">
-                    <span className="text-zinc-400">Personalization</span>
-                    <span className="font-semibold text-zinc-800">Permanent Fiber Laser Engraved</span>
-                  </div>
-                  <div className="flex justify-between py-1">
-                    <span className="text-zinc-400">Packaging</span>
-                    <span className="font-semibold text-zinc-800">Luxury Satin Gift Box Included</span>
+                  {product.specifications && product.specifications.length > 0 && (
+                    <div className="space-y-2.5">
+                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-zinc-900 flex items-center gap-1.5">
+                        <Layers className="w-4 h-4 text-amber-600" />
+                        <span>Key Specifications</span>
+                      </h4>
+                      <div className="space-y-1.5 text-xs text-zinc-600">
+                        {product.specifications.map((spec: any, idx: number) => (
+                          <div key={idx} className={`flex justify-between py-1 ${idx !== product.specifications.length - 1 ? 'border-b border-zinc-100' : ''}`}>
+                            <span className="text-zinc-400">{spec.label}</span>
+                            <span className="font-semibold text-zinc-800 text-right pl-4">{spec.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              {/* Target Occasions & Recipients */}
+              {((product.giftOccasions && product.giftOccasions.length > 0) ||
+                (product.recipient && product.recipient.length > 0)) && (
+                <div className={`pt-4 space-y-2.5 ${product.description || product.inclusions?.length || product.specifications?.length ? 'border-t border-zinc-100' : ''}`}>
+                  <h4 className="text-xs font-bold text-zinc-800">Ideal For:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {(product.giftOccasions || []).map((occ: string) => (
+                      <span
+                        key={occ}
+                        className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-900 border border-amber-200/80"
+                      >
+                        🎉 {occ}
+                      </span>
+                    ))}
+                    {(product.recipient || []).map((rec: string) => (
+                      <span
+                        key={rec}
+                        className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-900 border border-rose-200/80"
+                      >
+                        🎁 For {rec}
+                      </span>
+                    ))}
                   </div>
                 </div>
-              </div>
+              )}
             </div>
-
-            {/* Target Occasions & Recipients */}
-            {((product.giftOccasions && product.giftOccasions.length > 0) ||
-              (product.recipient && product.recipient.length > 0)) && (
-              <div className="pt-4 border-t border-zinc-100 space-y-2.5">
-                <h4 className="text-xs font-bold text-zinc-800">Ideal For:</h4>
-                <div className="flex flex-wrap gap-2">
-                  {(product.giftOccasions || []).map((occ: string) => (
-                    <span
-                      key={occ}
-                      className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-900 border border-amber-200/80"
-                    >
-                      🎉 {occ}
-                    </span>
-                  ))}
-                  {(product.recipient || []).map((rec: string) => (
-                    <span
-                      key={rec}
-                      className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-900 border border-rose-200/80"
-                    >
-                      🎁 For {rec}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          )}
         </div>
 
         {/* ═════════════════════════════════════════════════════════
             RIGHT COLUMN: DETAILS, TIERED PRICING & ADDONS (Sticky Buy Box)
+            (Order 2 on mobile, pushed to right side on desktop)
            ═════════════════════════════════════════════════════════ */}
-        <div className="lg:col-span-5 space-y-5 lg:sticky lg:top-24">
+        <div className="order-2 lg:order-none lg:col-span-5 lg:col-start-8 w-full space-y-5 lg:sticky lg:top-24">
           
           {/* Header & Badges */}
           <div>
