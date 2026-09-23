@@ -156,7 +156,7 @@ export function StoreLayout() {
       {/* ═════════════════════════════════════════════════════════
           0. TOP ANNOUNCEMENT TICKER (Subtle, High Conversion)
          ═════════════════════════════════════════════════════════ */}
-      <div className="bg-zinc-950 text-white text-[11px] py-1.5 px-4 font-medium flex items-center justify-center gap-2 tracking-wide border-b border-zinc-800">
+      {/* <div className="bg-zinc-950 text-white text-[11px] py-1.5 px-4 font-medium flex items-center justify-center gap-2 tracking-wide border-b border-zinc-800">
         <span className="text-amber-400 font-bold flex items-center gap-1">
           <Sparkles className="w-3 h-3 text-amber-400" />
           <span>FESTIVE SALE</span>
@@ -164,7 +164,7 @@ export function StoreLayout() {
         <span className="text-zinc-600">•</span>
         <span>Code <strong className="text-amber-300 font-mono tracking-wider font-bold">FESTIVE10</strong> — 10% Off</span>
         <span className="hidden sm:inline text-zinc-600">•</span>
-        <span className="hidden sm:inline text-zinc-300">🚚 Free Delivery Pan-India</span>
+        <span className="hidden sm:inline text-zinc-300">Pan-India Delivery</span>
         <span className="hidden md:inline text-zinc-600">•</span>
         <a
           href="https://wa.me/918591721436"
@@ -174,7 +174,7 @@ export function StoreLayout() {
         >
           <span>WhatsApp: 85917 21436</span>
         </a>
-      </div>
+      </div> */}
 
       {/* ═════════════════════════════════════════════════════════
           1. E-COMMERCE MAIN HEADER (Amazon / Flipkart / Giftana style)

@@ -244,8 +244,12 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
                   {comboItems.map((item: string, idx: number) => {
                     const matchingZone = zones.find((z: any) => z.name === item) || zones[idx]
                     const textValue = itemTexts[item] || (matchingZone?.sampleText || "")
-
+                    
                     if (matchingZone) {
+                      if (!matchingZone.sampleText || matchingZone.sampleText.trim() === "") {
+                        return null;
+                      }
+
                       const curvature = matchingZone.curveRadius ?? 35
                       const arcHeight = (curvature / 100) * 36
                       const pathId = `modal-curve-${matchingZone.id || idx}`

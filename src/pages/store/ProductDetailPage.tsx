@@ -553,6 +553,11 @@ export function ProductDetailPage() {
                 {isPersonalizable && activeImageIdx === 0 && product?.personalizationZones?.length > 0 && (
                   <div className="absolute inset-0 pointer-events-none z-10 select-none overflow-hidden">
                     {product.personalizationZones.map((zone: any, idx: number) => {
+                      // If sampleText is explicitly empty, user wants to disable visual preview for this zone
+                      if (!zone.sampleText || zone.sampleText.trim() === "") {
+                        return null;
+                      }
+
                       const textValue =
                         itemizedEngraving[zone.name] ||
                         (customText && !customText.includes("•")
@@ -1329,8 +1334,8 @@ export function ProductDetailPage() {
           </div>
 
           {/* Interactive Delivery Estimator & Trust Reassurances */}
-          <div className="space-y-3 pt-2">
-            {/* Pincode Estimator Card */}
+          {/* <div className="space-y-3 pt-2">
+           
             <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200/90 space-y-2.5">
               <div className="flex items-center justify-between text-xs font-bold text-zinc-900">
                 <span className="flex items-center gap-1.5">
@@ -1399,14 +1404,14 @@ export function ProductDetailPage() {
                 <span>Luxury Hardbound Box</span>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
 
       {/* ═════════════════════════════════════════════════════════
           CUSTOMER REVIEWS SECTION
          ═════════════════════════════════════════════════════════ */}
-      <section className="pt-10 border-t border-zinc-200 space-y-6">
+      {/* <section className="pt-10 border-t border-zinc-200 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-xl font-serif font-bold text-zinc-950">Customer Reviews</h3>
@@ -1453,7 +1458,7 @@ export function ProductDetailPage() {
             ))}
           </div>
         )}
-      </section>
+      </section> */}
 
       {/* Review Modal */}
       {showReviewModal && (
