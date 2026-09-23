@@ -773,7 +773,7 @@ export function ProductDetailPage() {
             RIGHT COLUMN: DETAILS, TIERED PRICING & ADDONS (Sticky Buy Box)
             (Order 2 on mobile, pushed to right side on desktop)
            ═════════════════════════════════════════════════════════ */}
-        <div className="order-2 lg:order-none lg:col-span-5 lg:col-start-8 w-full space-y-5 lg:sticky lg:top-24">
+        <div className="order-2 lg:order-none lg:col-span-5 lg:col-start-8 lg:row-start-1 w-full space-y-5 lg:sticky lg:top-24">
           
           {/* Header & Badges */}
           <div>
@@ -940,7 +940,7 @@ export function ProductDetailPage() {
           {/* ═════════════════════════════════════════════════════════
               2. "MAKE IT EXTRA SPECIAL ✉️ 🍫 🎁" ADD-ONS SYSTEM
              ═════════════════════════════════════════════════════════ */}
-          {addons.length > 0 && (
+          {product.allowAddons !== false && addons.length > 0 && (
             <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-amber-50/70 to-rose-50/40 border border-amber-200/80 space-y-4">
               <div>
                 <h3 className="text-sm font-extrabold text-zinc-950 flex items-center gap-2">
@@ -1001,12 +1001,12 @@ export function ProductDetailPage() {
                         </div>
 
                         {/* Variant Selector (if variants exist) & Price & Action */}
-                        <div className="flex items-center gap-3 shrink-0 ml-auto">
+                        <div className="flex items-center gap-3 w-full sm:w-auto shrink-0 mt-2 sm:mt-0 flex-wrap sm:flex-nowrap justify-between sm:justify-end">
                           {variants.length > 1 && (
                             <select
                               value={currentSelectedVariant}
                               onChange={(e) => handleChangeVariant(addon, e.target.value)}
-                              className="px-2 py-1 text-xs rounded-lg border border-zinc-300 bg-white font-medium text-zinc-800 focus:outline-none focus:border-amber-600"
+                              className="px-2 py-1 text-xs rounded-lg border border-zinc-300 bg-white font-medium text-zinc-800 focus:outline-none focus:border-amber-600 max-w-[180px] sm:max-w-xs truncate flex-1"
                             >
                               {variants.map((v: any, vIdx: number) => (
                                 <option key={vIdx} value={v.name}>
@@ -1016,9 +1016,10 @@ export function ProductDetailPage() {
                             </select>
                           )}
 
-                          <span className="font-black text-xs text-zinc-900">
-                            +{formatPrice(addonPrice)}
-                          </span>
+                          <div className="flex items-center gap-2 ml-auto">
+                            <span className="font-black text-xs text-zinc-900">
+                              +{formatPrice(addonPrice)}
+                            </span>
 
                           <button
                             type="button"
@@ -1041,6 +1042,7 @@ export function ProductDetailPage() {
                               </>
                             )}
                           </button>
+                          </div>
                         </div>
                       </div>
 
