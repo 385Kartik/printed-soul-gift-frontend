@@ -49,6 +49,8 @@ export const authApi = {
 
 // ── Catalog ──
 export const catalogApi = {
+  getTheme: () => api.get("/theme"),
+  getBanners: () => api.get("/banners"),
   getNavbarCategories: () => api.get("/catalog/categories/navbar"),
   getHomeCategories: () => api.get("/catalog/categories/home"),
   getCategories: () => api.get("/catalog/categories"),

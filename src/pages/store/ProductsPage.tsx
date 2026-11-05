@@ -73,31 +73,34 @@ export function ProductsPage() {
 
   const budgetRanges = [
     { label: "All Budgets", min: "", max: "" },
-    { label: "Under ₹500", min: "", max: "500" },
-    { label: "₹500 - ₹1,000", min: "500", max: "1000" },
-    { label: "₹1,000 - ₹2,000", min: "1000", max: "2000" },
-    { label: "Above ₹2,000", min: "2000", max: "" },
+    { label: "Under ₹999", min: "", max: "999" },
+    { label: "₹1,000 - ₹2,499", min: "1000", max: "2499" },
+    { label: "₹2,500 - ₹4,999", min: "2500", max: "4999" },
+    { label: "Above ₹5,000 (VIP)", min: "5000", max: "" },
   ]
 
   return (
-    <div className="max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-6">
+    <div className="w-full px-3 sm:px-6 py-6">
       <SEO
-        title="Browse All Gifts &amp; Hampers — Printed Soul Gift"
-        description="Browse our complete collection of personalized gifts, corporate hampers, and festive boxes."
+        title="Curated Collections &amp; Hampers — Printed Soul"
+        description="Browse our complete collection of Ferrari, BMW, and Legends inspired hampers, corporate onboarding sets, and bespoke laser keepsakes."
       />
 
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-zinc-200 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08] mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-zinc-950 tracking-tight">
+          <span className="text-[10px] font-extrabold uppercase tracking-[0.25em] text-amber-400 block mb-1">
+            HAUTE CURATIONS
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight">
             {searchQuery
               ? `Results for "${searchQuery}"`
               : activeCategory
               ? categories.find((c: any) => c.slug === activeCategory)?.name || "Gifts Collection"
               : "All Gifting Collections"}
           </h1>
-          <p className="text-xs text-zinc-500 mt-1">
-            Showing {products.length} of {meta.total} gift products
+          <p className="text-xs text-zinc-400 mt-1">
+            Showing {products.length} of {meta.total} bespoke items
           </p>
         </div>
 
@@ -105,9 +108,9 @@ export function ProductsPage() {
           {/* Mobile Filter Toggle */}
           <button
             onClick={() => setMobileFilterOpen(true)}
-            className="lg:hidden px-4 py-2 bg-white border border-zinc-200 rounded-lg text-xs font-semibold text-zinc-800 flex items-center gap-2 shadow-xs"
+            className="lg:hidden px-4 py-2 bg-white/10 rounded-xl text-xs font-semibold text-zinc-200 flex items-center gap-2 hover:bg-white/15 transition-colors"
           >
-            <SlidersHorizontal className="w-4 h-4 text-zinc-500" />
+            <SlidersHorizontal className="w-4 h-4 text-amber-400" />
             <span>Filters</span>
           </button>
 
@@ -115,109 +118,109 @@ export function ProductsPage() {
           <select
             value={sort}
             onChange={(e) => setFilter("sort", e.target.value)}
-            className="px-3 py-2 bg-white border border-zinc-200 rounded-lg text-xs font-semibold text-zinc-800 focus:outline-none focus:border-amber-600 shadow-xs cursor-pointer"
+            className="px-3.5 py-2 bg-[#120306] border border-white/[0.08] rounded-xl text-xs font-semibold text-zinc-200 focus:outline-none focus:border-amber-400 cursor-pointer"
           >
-            <option value="newest">Sort: Newest First</option>
-            <option value="bestseller">Sort: Best Sellers</option>
+            <option value="newest">Sort: Newest Drops</option>
+            <option value="bestseller">Sort: VIP Bestsellers</option>
             <option value="price-low">Price: Low to High</option>
             <option value="price-high">Price: High to Low</option>
-            <option value="popular">Customer Rating</option>
+            <option value="popular">Connoisseur Rating</option>
           </select>
         </div>
       </div>
 
-      {/* Main Content Layout */}
+      {/* Main Content Layout (Direct on Background) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8">
-        {/* Desktop Sidebar Filters */}
-        <div className="hidden lg:block lg:col-span-3 xl:col-span-2 space-y-6 bg-white p-5 rounded-xl border border-zinc-200/80 shadow-xs self-start">
-          <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-900 flex items-center gap-2">
-              <Filter className="w-3.5 h-3.5 text-amber-700" /> Filter Catalog
+        {/* Desktop Sidebar Filters (Direct on Background, No Outer Box) */}
+        <div className="hidden lg:block lg:col-span-3 xl:col-span-2 space-y-6 bg-transparent p-0 self-start border-r border-white/[0.06] pr-4">
+          <div className="flex items-center justify-between pb-3 border-b border-white/5">
+            <span className="text-xs font-bold uppercase tracking-widest text-white flex items-center gap-2">
+              <Filter className="w-3.5 h-3.5 text-amber-400" /> Filter Catalog
             </span>
             {(activeCategory || activeSubCategory || minPrice || maxPrice || searchQuery) && (
               <button
                 onClick={clearAllFilters}
-                className="text-[11px] font-semibold text-amber-700 hover:underline"
+                className="text-[11px] font-semibold text-amber-400 hover:text-amber-300 transition-colors"
               >
-                Reset All
+                Reset
               </button>
             )}
           </div>
 
           {/* Category Filter */}
-  <div>
-    <h4 className="text-xs font-bold text-zinc-800 uppercase tracking-wider mb-2">Category</h4>
-    <div className="space-y-1">
-      <button
-        onClick={() => setCategoryFilter("", "")}
-        className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-          !activeCategory && !activeSubCategory
-            ? "bg-amber-50 text-amber-900 font-bold border border-amber-200"
-            : "text-zinc-600 hover:bg-zinc-50"
-        }`}
-      >
-        All Categories
-      </button>
-      {categories
-        .filter((c: any) => !c.parentCategory)
-        .map((c: any) => {
-          const subCats = categories.filter((sub: any) => {
-            const pId = typeof sub.parentCategory === "object" ? sub.parentCategory?._id : sub.parentCategory
-            return pId === c._id
-          })
-          const isMainActive = activeCategory === c.slug && !activeSubCategory
-          const hasActiveSub = subCats.some((s: any) => s.slug === activeSubCategory)
-
-          return (
-            <div key={c._id} className="space-y-0.5">
+          <div>
+            <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Category</h4>
+            <div className="space-y-1">
               <button
-                onClick={() => setCategoryFilter(c.slug, "")}
-                className={`w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center justify-between ${
-                  isMainActive
-                    ? "bg-amber-50 text-amber-900 font-bold border border-amber-200"
-                    : hasActiveSub
-                    ? "text-amber-900 font-bold"
-                    : "text-zinc-700 hover:bg-zinc-50 font-semibold"
+                onClick={() => setCategoryFilter("", "")}
+                className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${
+                  !activeCategory && !activeSubCategory
+                    ? "bg-amber-500/15 text-amber-300 font-bold border border-amber-500/30"
+                    : "text-zinc-400 hover:bg-white/5 hover:text-white"
                 }`}
               >
-                <span>{c.name}</span>
-                {subCats.length > 0 && (
-                  <span className="text-[10px] text-zinc-400 font-normal">
-                    {subCats.length}
-                  </span>
-                )}
+                All Categories
               </button>
+              {categories
+                .filter((c: any) => !c.parentCategory)
+                .map((c: any) => {
+                  const subCats = categories.filter((sub: any) => {
+                    const pId = typeof sub.parentCategory === "object" ? sub.parentCategory?._id : sub.parentCategory
+                    return pId === c._id
+                  })
+                  const isMainActive = activeCategory === c.slug && !activeSubCategory
+                  const hasActiveSub = subCats.some((s: any) => s.slug === activeSubCategory)
 
-              {subCats.length > 0 && (activeCategory === c.slug || hasActiveSub) && (
-                <div className="pl-4 space-y-0.5 border-l-2 border-amber-200 ml-3 py-0.5">
-                  {subCats.map((sub: any) => {
-                    const isSubActive = activeSubCategory === sub.slug
-                    return (
+                  return (
+                    <div key={c._id} className="space-y-0.5">
                       <button
-                        key={sub._id}
-                        onClick={() => setCategoryFilter(c.slug, sub.slug)}
-                        className={`w-full text-left px-2.5 py-1 rounded-md text-[11px] transition-colors ${
-                          isSubActive
-                            ? "bg-amber-100/80 text-amber-950 font-bold border border-amber-300"
-                            : "text-zinc-600 hover:text-amber-800 hover:bg-amber-50/60 font-medium"
+                        onClick={() => setCategoryFilter(c.slug, "")}
+                        className={`w-full text-left px-3 py-1.5 rounded-xl text-xs transition-colors flex items-center justify-between ${
+                          isMainActive
+                            ? "bg-amber-500/15 text-amber-300 font-bold border border-amber-500/30"
+                            : hasActiveSub
+                            ? "text-amber-300 font-bold"
+                            : "text-zinc-300 hover:bg-white/5 hover:text-white"
                         }`}
                       >
-                        └ {sub.name}
+                        <span>{c.name}</span>
+                        {subCats.length > 0 && (
+                          <span className="text-[10px] text-zinc-500 font-normal">
+                            {subCats.length}
+                          </span>
+                        )}
                       </button>
-                    )
-                  })}
-                </div>
-              )}
+
+                      {subCats.length > 0 && (activeCategory === c.slug || hasActiveSub) && (
+                        <div className="pl-4 space-y-0.5 border-l border-amber-500/30 ml-3 py-0.5">
+                          {subCats.map((sub: any) => {
+                            const isSubActive = activeSubCategory === sub.slug
+                            return (
+                              <button
+                                key={sub._id}
+                                onClick={() => setCategoryFilter(c.slug, sub.slug)}
+                                className={`w-full text-left px-2.5 py-1 rounded-lg text-[11px] transition-colors ${
+                                  isSubActive
+                                    ? "bg-amber-500/20 text-amber-300 font-bold"
+                                    : "text-zinc-400 hover:text-amber-300 hover:bg-white/5"
+                                }`}
+                              >
+                                └ {sub.name}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
             </div>
-          )
-        })}
-    </div>
-  </div>
+          </div>
 
           {/* Budget Range Filter */}
           <div>
-            <h4 className="text-xs font-bold text-zinc-800 uppercase tracking-wider mb-2">
-              Shop by Budget
+            <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">
+              Filter by Budget
             </h4>
             <div className="space-y-1">
               {budgetRanges.map((range, idx) => {
@@ -234,10 +237,10 @@ export function ProductsPage() {
                       next.set("page", "1")
                       setSearchParams(next)
                     }}
-                    className={`w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors ${
+                    className={`w-full text-left px-3 py-1.5 rounded-xl text-xs transition-colors ${
                       isSelected
-                        ? "bg-amber-50 text-amber-900 font-bold border border-amber-200"
-                        : "text-zinc-600 hover:bg-zinc-50 font-medium"
+                        ? "bg-amber-500/15 text-amber-300 font-bold border border-amber-500/30"
+                        : "text-zinc-400 hover:bg-white/5 hover:text-white font-medium"
                     }`}
                   >
                     {range.label}
@@ -253,19 +256,19 @@ export function ProductsPage() {
           {isLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="aspect-square rounded-xl bg-zinc-100 animate-pulse" />
+                <div key={i} className="aspect-[4/5] rounded-2xl bg-[#141418] animate-pulse" />
               ))}
             </div>
           ) : products.length === 0 ? (
-            <div className="p-16 text-center bg-white rounded-xl border border-zinc-200/80 space-y-3">
-              <Package className="w-10 h-10 text-zinc-300 mx-auto" />
-              <p className="font-serif font-bold text-lg text-zinc-900">No gifts found</p>
-              <p className="text-xs text-zinc-500 max-w-sm mx-auto">
-                We couldn&apos;t find any products matching your current filters. Try changing your search or budget.
+            <div className="p-16 text-center bg-[#121216] rounded-2xl border border-white/10 space-y-3">
+              <Package className="w-10 h-10 text-zinc-500 mx-auto" />
+              <p className="font-serif font-bold text-lg text-white">No luxury gifts found</p>
+              <p className="text-xs text-zinc-400 max-w-sm mx-auto">
+                We couldn&apos;t find any items matching your current filters. Try adjusting your search keywords or budget range.
               </p>
               <button
                 onClick={clearAllFilters}
-                className="mt-2 px-5 py-2 bg-zinc-900 text-white rounded-lg text-xs font-semibold hover:bg-black transition-colors"
+                className="mt-2 px-6 py-2.5 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white rounded-full text-xs font-bold shadow-lg transition-all"
               >
                 Reset All Filters
               </button>
@@ -287,10 +290,10 @@ export function ProductsPage() {
                   <button
                     key={pageNum}
                     onClick={() => setFilter("page", pageNum.toString())}
-                    className={`w-9 h-9 rounded-lg text-xs font-semibold transition-colors ${
+                    className={`w-9 h-9 rounded-xl text-xs font-semibold transition-colors ${
                       page === pageNum
-                        ? "bg-zinc-950 text-white shadow-xs"
-                        : "bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50"
+                        ? "bg-red-600 text-white shadow-md shadow-red-900/40"
+                        : "bg-[#141418] border border-white/10 text-zinc-300 hover:bg-white/10 hover:text-white"
                     }`}
                   >
                     {pageNum}
@@ -304,26 +307,26 @@ export function ProductsPage() {
 
       {/* Mobile Filter Modal */}
       {mobileFilterOpen && (
-        <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-xs flex justify-end">
-          <div className="w-full max-w-xs bg-white h-full p-5 space-y-5 overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
-              <span className="font-bold text-sm text-zinc-900">Filter Gifts</span>
-              <button onClick={() => setMobileFilterOpen(false)} className="text-zinc-500">
+        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex justify-end">
+          <div className="w-full max-w-xs bg-[#111114] border-l border-white/10 h-full p-5 space-y-5 overflow-y-auto text-zinc-100">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <span className="font-bold text-sm text-white font-serif">Filter Gifts</span>
+              <button onClick={() => setMobileFilterOpen(false)} className="text-zinc-400 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Categories */}
             <div>
-              <h4 className="text-xs font-bold text-zinc-800 uppercase tracking-wider mb-2">Category</h4>
+              <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Category</h4>
               <div className="space-y-1">
                 <button
                   onClick={() => {
                     setFilter("category", "")
                     setMobileFilterOpen(false)
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium ${
-                    !activeCategory ? "bg-amber-50 text-amber-900 font-bold" : "text-zinc-600"
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium ${
+                    !activeCategory ? "bg-amber-500/20 text-amber-300 font-bold" : "text-zinc-400"
                   }`}
                 >
                   All Categories
@@ -335,10 +338,10 @@ export function ProductsPage() {
                       setFilter("category", c.slug)
                       setMobileFilterOpen(false)
                     }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium ${
+                    className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium ${
                       activeCategory === c.slug
-                        ? "bg-amber-50 text-amber-900 font-bold"
-                        : "text-zinc-600"
+                        ? "bg-amber-500/20 text-amber-300 font-bold"
+                        : "text-zinc-400 hover:text-white"
                     }`}
                   >
                     {c.name}
@@ -349,7 +352,7 @@ export function ProductsPage() {
 
             {/* Budget */}
             <div>
-              <h4 className="text-xs font-bold text-zinc-800 uppercase tracking-wider mb-2">Budget</h4>
+              <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Budget</h4>
               <div className="space-y-1">
                 {budgetRanges.map((range, idx) => (
                   <button
@@ -364,7 +367,7 @@ export function ProductsPage() {
                       setSearchParams(next)
                       setMobileFilterOpen(false)
                     }}
-                    className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-zinc-600"
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:text-white"
                   >
                     {range.label}
                   </button>

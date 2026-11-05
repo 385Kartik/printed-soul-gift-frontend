@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { AuthProvider, useAuth } from "./context/AuthContext"
 import { CartProvider } from "./context/CartContext"
 import { WishlistProvider } from "./context/WishlistContext"
+import { ThemeProvider } from "./context/ThemeContext"
 import { StoreLayout } from "./components/layouts/StoreLayout"
 
 // Pages
@@ -50,10 +51,11 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <CartProvider>
-          <WishlistProvider>
-            <BrowserRouter>
+      <ThemeProvider>
+        <AuthProvider>
+          <CartProvider>
+            <WishlistProvider>
+              <BrowserRouter>
               <Routes>
                 <Route path="/" element={<StoreLayout />}>
                   <Route index element={<HomePage />} />
@@ -93,6 +95,7 @@ export default function App() {
           </WishlistProvider>
         </CartProvider>
       </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   )
 }

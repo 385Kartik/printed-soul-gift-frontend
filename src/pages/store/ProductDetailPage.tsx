@@ -478,23 +478,23 @@ export function ProductDetailPage() {
       : tierDiscount
 
   return (
-    <div className="max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-5 space-y-8">
+    <div className="w-full px-3 sm:px-6 py-6 space-y-6 text-zinc-100">
       <SEO title={`${product.name} — Printed Soul Gift`} description={product.description} />
 
       {/* Breadcrumbs */}
-      <nav className="flex items-center gap-2 text-xs text-zinc-500">
-        <Link to="/" className="hover:text-zinc-900 transition-colors">
+      <nav className="flex items-center gap-2 text-xs text-zinc-400">
+        <Link to="/" className="hover:text-white transition-colors">
           Home
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
+        <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
         <Link
           to={`/products?category=${product.category?.slug || ""}`}
-          className="hover:text-zinc-900 transition-colors"
+          className="hover:text-white transition-colors"
         >
           {product.category?.name || "Catalog"}
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
-        <span className="text-zinc-900 font-medium truncate max-w-[320px]">{product.name}</span>
+        <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
+        <span className="text-white font-semibold truncate max-w-[320px]">{product.name}</span>
       </nav>
 
       {/* Main Container: Gallery & Specifications (Left 7/12) & Buy Box (Right 5/12) */}
@@ -520,10 +520,10 @@ export function ProductDetailPage() {
                     key={idx}
                     type="button"
                     onClick={() => setActiveImageIdx(idx)}
-                    className={`relative w-20 h-20 sm:w-[96px] sm:h-[96px] rounded-2xl overflow-hidden border-2 transition-all shrink-0 bg-zinc-50 cursor-pointer ${
+                    className={`relative w-20 h-20 sm:w-[96px] sm:h-[96px] rounded-2xl overflow-hidden border-2 transition-all shrink-0 bg-[#09090C] cursor-pointer ${
                       activeImageIdx === idx
-                        ? "border-amber-600 shadow-md ring-2 ring-amber-500/30 scale-[1.02]"
-                        : "border-zinc-200 hover:border-zinc-400 opacity-80 hover:opacity-100"
+                        ? "border-amber-500 shadow-lg ring-2 ring-amber-500/30 scale-[1.02]"
+                        : "border-white/10 hover:border-white/30 opacity-70 hover:opacity-100"
                     }`}
                   >
                     {img.toLowerCase().endsWith(".mp4") || img.toLowerCase().endsWith(".webm") ? (
@@ -541,8 +541,8 @@ export function ProductDetailPage() {
               </div>
             )}
 
-            {/* Main Showcase Image (With Mouse-Tracking Zoom Lens & Chevrons) */}
-            <div className="flex-1 w-full aspect-square max-w-[620px] mx-auto rounded-3xl overflow-hidden bg-zinc-50 border border-zinc-200 relative group shadow-sm">
+            {/* Main Showcase Image (Direct on Background, Mouse-Tracking Zoom Lens) */}
+            <div className="flex-1 w-full aspect-square max-w-[620px] mx-auto rounded-2xl overflow-hidden bg-black/40 relative group">
               <ImageZoomLens
                 src={getImageUrl(images[activeImageIdx])}
                 alt={product.name}
@@ -698,14 +698,14 @@ export function ProductDetailPage() {
            ═════════════════════════════════════════════════════════ */}
         <div className="order-3 lg:order-none w-full">
           {(product.description || (product.inclusions && product.inclusions.length > 0) || (product.specifications && product.specifications.length > 0)) && (
-            <div className="bg-white rounded-3xl border border-zinc-200/90 p-6 shadow-xs space-y-6">
+            <div className="p-4 sm:p-6 space-y-6 border-t border-white/[0.08]">
               {product.description && (
                 <div>
-                  <h3 className="text-base font-serif font-black text-zinc-950 flex items-center gap-2">
-                    <Award className="w-5 h-5 text-amber-600" />
+                  <h3 className="text-base font-serif font-black text-white flex items-center gap-2">
+                    <Award className="w-5 h-5 text-amber-400" />
                     <span>What Makes This Gift Special</span>
                   </h3>
-                  <p className="text-xs text-zinc-600 leading-relaxed mt-2.5">
+                  <p className="text-xs text-zinc-300 leading-relaxed mt-2.5">
                     {product.description}
                   </p>
                 </div>
@@ -713,18 +713,18 @@ export function ProductDetailPage() {
 
               {/* Inclusions & Specifications */}
               {((product.inclusions && product.inclusions.length > 0) || (product.specifications && product.specifications.length > 0)) && (
-                <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${product.description ? 'pt-4 border-t border-zinc-100' : ''}`}>
+                <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${product.description ? 'pt-4 border-t border-white/5' : ''}`}>
                   
                   {product.inclusions && product.inclusions.length > 0 && (
                     <div className="space-y-2.5">
-                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-zinc-900 flex items-center gap-1.5">
-                        <Package className="w-4 h-4 text-amber-600" />
+                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-white flex items-center gap-1.5">
+                        <Package className="w-4 h-4 text-amber-400" />
                         <span>Hamper Inclusions</span>
                       </h4>
-                      <ul className="space-y-1.5 text-xs text-zinc-600">
+                      <ul className="space-y-1.5 text-xs text-zinc-300">
                         {product.inclusions.map((inc: string, idx: number) => (
                           <li key={idx} className="flex items-center gap-2">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                             <span>{inc}</span>
                           </li>
                         ))}
@@ -734,15 +734,15 @@ export function ProductDetailPage() {
 
                   {product.specifications && product.specifications.length > 0 && (
                     <div className="space-y-2.5">
-                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-zinc-900 flex items-center gap-1.5">
-                        <Layers className="w-4 h-4 text-amber-600" />
+                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-white flex items-center gap-1.5">
+                        <Layers className="w-4 h-4 text-amber-400" />
                         <span>Key Specifications</span>
                       </h4>
-                      <div className="space-y-1.5 text-xs text-zinc-600">
+                      <div className="space-y-1.5 text-xs text-zinc-300">
                         {product.specifications.map((spec: any, idx: number) => (
-                          <div key={idx} className={`flex justify-between py-1 ${idx !== product.specifications.length - 1 ? 'border-b border-zinc-100' : ''}`}>
-                            <span className="text-zinc-400">{spec.label}</span>
-                            <span className="font-semibold text-zinc-800 text-right pl-4">{spec.value}</span>
+                          <div key={idx} className={`flex justify-between py-1 ${idx !== product.specifications.length - 1 ? 'border-b border-white/5' : ''}`}>
+                            <span className="text-zinc-500">{spec.label}</span>
+                            <span className="font-semibold text-zinc-200 text-right pl-4">{spec.value}</span>
                           </div>
                         ))}
                       </div>
@@ -753,13 +753,13 @@ export function ProductDetailPage() {
               {/* Target Occasions & Recipients */}
               {((product.giftOccasions && product.giftOccasions.length > 0) ||
                 (product.recipient && product.recipient.length > 0)) && (
-                <div className={`pt-4 space-y-2.5 ${product.description || product.inclusions?.length || product.specifications?.length ? 'border-t border-zinc-100' : ''}`}>
-                  <h4 className="text-xs font-bold text-zinc-800">Ideal For:</h4>
+                <div className={`pt-4 space-y-2.5 ${product.description || product.inclusions?.length || product.specifications?.length ? 'border-t border-white/5' : ''}`}>
+                  <h4 className="text-xs font-bold text-zinc-300">Ideal For:</h4>
                   <div className="flex flex-wrap gap-2">
                     {(product.giftOccasions || []).map((occ: string) => (
                       <span
                         key={occ}
-                        className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-900 border border-amber-200/80"
+                        className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/30"
                       >
                         🎉 {occ}
                       </span>
@@ -767,7 +767,7 @@ export function ProductDetailPage() {
                     {(product.recipient || []).map((rec: string) => (
                       <span
                         key={rec}
-                        className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-900 border border-rose-200/80"
+                        className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-red-950/40 text-rose-300 border border-red-800/40"
                       >
                         🎁 For {rec}
                       </span>
@@ -790,11 +790,11 @@ export function ProductDetailPage() {
           {/* Header & Badges */}
           <div>
             {product.category?.name && (
-              <span className="text-[11px] font-extrabold text-amber-700 uppercase tracking-widest block mb-1">
+              <span className="text-[11px] font-extrabold text-amber-400 uppercase tracking-widest block mb-1">
                 {product.category.name}
               </span>
             )}
-            <h1 className="text-2xl sm:text-3xl font-serif font-black text-zinc-950 leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-serif font-black text-white leading-tight">
               {product.name}
             </h1>
 
@@ -802,41 +802,41 @@ export function ProductDetailPage() {
             <div className="flex items-center gap-3 mt-2.5 flex-wrap">
               {reviews.length > 0 && (
                 <>
-                  <div className="flex items-center gap-1 bg-amber-50 text-zinc-900 px-2 py-0.5 rounded text-xs font-bold border border-amber-200">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  <div className="flex items-center gap-1 bg-amber-500/15 text-amber-300 px-2 py-0.5 rounded text-xs font-bold border border-amber-500/30">
+                    <Star className="w-3.5 h-3.5 fill-amber-300 text-amber-300" />
                     <span>{Number(product.ratings?.average || 5).toFixed(1)}</span>
                   </div>
-                  <span className="text-xs text-zinc-500">
+                  <span className="text-xs text-zinc-400">
                     ({reviews.length} {reviews.length === 1 ? "review" : "reviews"})
                   </span>
-                  <span className="text-zinc-300">•</span>
+                  <span className="text-zinc-600">•</span>
                 </>
               )}
-              <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
+              <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" /> In Stock &amp; Ready to Ship
               </span>
             </div>
           </div>
 
-          {/* Pricing Row with "FREE Name Engraving" Pill */}
-          <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200/90 space-y-1">
+          {/* Pricing Row with "FREE Name Engraving" Pill (Direct on Background) */}
+          <div className="py-3.5 border-y border-white/[0.08] space-y-1">
             <div className="flex items-baseline gap-3 flex-wrap">
-              <span className="text-3xl font-black text-zinc-950 font-sans tracking-tight">
+              <span className="text-3xl font-black text-white font-sans tracking-tight">
                 {formatPrice(unitPrice)}
               </span>
               {product.comparePrice && product.comparePrice > unitPrice && (
-                <span className="text-base text-zinc-400 line-through">
+                <span className="text-base text-zinc-500 line-through">
                   {formatPrice(product.comparePrice)}
                 </span>
               )}
               {isPersonalizable && (
-                <span className="text-xs font-bold text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-amber-600" /> FREE Name Engraving
+                <span className="text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-amber-400" /> FREE Name Engraving
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-zinc-500">
-              Inclusive of 18% GST. 100% Free Express Delivery Pan-India on all orders.
+            <p className="text-[11px] text-zinc-400">
+              Inclusive of 18% GST. Complimentary White-Glove Air Dispatch Pan-India on all orders.
             </p>
           </div>
 
@@ -845,29 +845,29 @@ export function ProductDetailPage() {
              ═════════════════════════════════════════════════════════ */}
           <div className="space-y-2.5 pt-1">
             {/* Viewer Counter */}
-            <div className="flex items-center gap-2 text-xs font-semibold text-zinc-700">
+            <div className="flex items-center gap-2 text-xs font-semibold text-zinc-300">
               <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-600"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600"></span>
               </span>
-              <Eye className="w-4 h-4 text-zinc-500 ml-0.5" />
+              <Eye className="w-4 h-4 text-zinc-400 ml-0.5" />
               <span>
-                <strong className="text-zinc-900">{viewersCount} customers</strong> are viewing this gift right now
+                <strong className="text-white">{viewersCount} customers</strong> are viewing this luxury gift right now
               </span>
             </div>
 
             {/* Stock Urgency Bar */}
-            <div className="p-3 rounded-xl bg-orange-50/70 border border-orange-200/80 space-y-1.5">
-              <div className="flex items-center justify-between text-xs font-bold text-orange-900">
+            <div className="p-3 rounded-xl bg-red-950/30 border border-red-900/40 space-y-1.5">
+              <div className="flex items-center justify-between text-xs font-bold text-rose-300">
                 <span className="flex items-center gap-1.5">
-                  <Flame className="w-4 h-4 text-orange-600 fill-orange-600" />
-                  <span>HURRY! ONLY A FEW LEFT IN STOCK</span>
+                  <Flame className="w-4 h-4 text-red-500 fill-red-500" />
+                  <span>LIMITED ALLOCATION REMAINING</span>
                 </span>
-                <span className="text-[11px] text-orange-700 font-semibold">6 Units Left</span>
+                <span className="text-[11px] text-amber-400 font-semibold">Only 6 Units Left</span>
               </div>
-              <div className="w-full bg-orange-200/60 rounded-full h-2 overflow-hidden">
+              <div className="w-full bg-black/50 rounded-full h-2 overflow-hidden border border-white/5">
                 <div
-                  className="bg-gradient-to-r from-orange-500 to-rose-600 h-full rounded-full transition-all duration-500"
+                  className="bg-gradient-to-r from-red-600 to-amber-500 h-full rounded-full transition-all duration-500"
                   style={{ width: "24%" }}
                 />
               </div>
@@ -879,10 +879,10 @@ export function ProductDetailPage() {
              ═════════════════════════════════════════════════════════ */}
           <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-extrabold text-zinc-900 uppercase tracking-wide flex items-center gap-1.5">
+              <h3 className="text-sm font-extrabold text-white uppercase tracking-wider flex items-center gap-1.5">
                 <span>Buy More, Save More</span>
               </h3>
-              <span className="text-[11px] font-semibold text-amber-700">Volume Discounts</span>
+              <span className="text-[11px] font-semibold text-amber-400">Volume Discounts</span>
             </div>
 
             <div className="space-y-2.5">
@@ -896,10 +896,10 @@ export function ProductDetailPage() {
                   <div
                     key={idx}
                     onClick={() => handleSelectTier(idx)}
-                    className={`relative p-3.5 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between ${
+                    className={`relative p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
                       isSelected
-                        ? "border-amber-600 bg-amber-50/40 shadow-xs"
-                        : "border-zinc-200 hover:border-zinc-300 bg-white"
+                        ? "border-amber-500 bg-amber-500/10 shadow-md"
+                        : "border-white/10 hover:border-white/20 bg-[#141418]"
                     }`}
                   >
                     {/* Left: Radio & Title */}
@@ -907,38 +907,38 @@ export function ProductDetailPage() {
                       <div
                         className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${
                           isSelected
-                            ? "border-amber-600 bg-amber-600 text-white"
-                            : "border-zinc-300 bg-white"
+                            ? "border-amber-400 bg-amber-400 text-black"
+                            : "border-white/30 bg-transparent"
                         }`}
                       >
-                        {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                        {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
                       </div>
 
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-bold text-xs sm:text-sm text-zinc-950">
+                          <span className="font-bold text-xs sm:text-sm text-white">
                             {tier.title}
                           </span>
                           {tier.badgeText && (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-200">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                               {tier.badgeText}
                             </span>
                           )}
                           {tier.isMostPopular && (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-zinc-900 text-white shadow-2xs">
-                              ⭐ Most popular
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-red-600 text-white">
+                              ⭐ VIP Favorite
                             </span>
                           )}
                         </div>
                         {tier.subtitle && (
-                          <p className="text-[11px] text-zinc-500 mt-0.5">{tier.subtitle}</p>
+                          <p className="text-[11px] text-zinc-400 mt-0.5">{tier.subtitle}</p>
                         )}
                       </div>
                     </div>
 
                     {/* Right: Calculated Price */}
                     <div className="text-right">
-                      <span className="font-sans font-black text-sm sm:text-base text-zinc-950 block">
+                      <span className="font-sans font-black text-sm sm:text-base text-white block">
                         {formatPrice(tierUnitPrice)}
                       </span>
                       <span className="text-[10px] text-zinc-400 font-medium">/ gift piece</span>
@@ -953,13 +953,13 @@ export function ProductDetailPage() {
               2. "MAKE IT EXTRA SPECIAL ✉️ 🍫 🎁" ADD-ONS SYSTEM
              ═════════════════════════════════════════════════════════ */}
           {product.allowAddons !== false && addons.length > 0 && (
-            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-amber-50/70 to-rose-50/40 border border-amber-200/80 space-y-4">
+            <div className="py-4 space-y-4 border-t border-white/[0.08]">
               <div>
-                <h3 className="text-sm font-extrabold text-zinc-950 flex items-center gap-2">
-                  <Gift className="w-4 h-4 text-amber-700" />
+                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
+                  <Gift className="w-4 h-4 text-amber-400" />
                   <span>Make it extra special ✉️ 🍫 🎁</span>
                 </h3>
-                <p className="text-[11px] text-zinc-600 mt-0.5">
+                <p className="text-[11px] text-zinc-400 mt-0.5">
                   Enhance this gift with greeting cards, premium chocolates, or luxury wrap.
                 </p>
               </div>
@@ -977,10 +977,10 @@ export function ProductDetailPage() {
                   return (
                     <div
                       key={addon._id}
-                      className={`p-3.5 rounded-xl border bg-white transition-all space-y-3 ${
+                      className={`p-3.5 rounded-xl border bg-[#15151A] transition-all space-y-3 ${
                         isSelected
-                          ? "border-amber-500 ring-1 ring-amber-400/50 shadow-sm"
-                          : "border-zinc-200 hover:border-zinc-300"
+                          ? "border-amber-500 ring-1 ring-amber-400/40 shadow-md"
+                          : "border-white/5 hover:border-white/15"
                       }`}
                     >
                       <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
@@ -990,10 +990,10 @@ export function ProductDetailPage() {
                             <img
                               src={getImageUrl(addon.image)}
                               alt={addon.title}
-                              className="w-10 h-10 rounded-lg object-cover border border-zinc-200 shrink-0"
+                              className="w-10 h-10 rounded-lg object-cover border border-white/10 shrink-0 bg-black"
                             />
                           ) : (
-                            <div className="w-10 h-10 rounded-lg bg-amber-100/80 text-amber-800 flex items-center justify-center shrink-0 text-base">
+                            <div className="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 text-base">
                               {addon.title.toLowerCase().includes("chocolate")
                                 ? "🍫"
                                 : addon.title.toLowerCase().includes("card")
@@ -1003,11 +1003,11 @@ export function ProductDetailPage() {
                           )}
 
                           <div className="min-w-0">
-                            <h4 className="font-bold text-xs text-zinc-900 truncate">
+                            <h4 className="font-semibold text-xs text-white truncate">
                               {addon.title}
                             </h4>
                             {addon.subtitle && (
-                              <p className="text-[10px] text-zinc-500 truncate">{addon.subtitle}</p>
+                              <p className="text-[10px] text-zinc-400 truncate">{addon.subtitle}</p>
                             )}
                           </div>
                         </div>
@@ -1018,7 +1018,7 @@ export function ProductDetailPage() {
                             <select
                               value={currentSelectedVariant}
                               onChange={(e) => handleChangeVariant(addon, e.target.value)}
-                              className="px-2 py-1 text-xs rounded-lg border border-zinc-300 bg-white font-medium text-zinc-800 focus:outline-none focus:border-amber-600 max-w-[180px] sm:max-w-xs truncate flex-1"
+                              className="px-2 py-1 text-xs rounded-lg border border-white/10 bg-[#1A1A22] font-medium text-white focus:outline-none focus:border-amber-400 max-w-[180px] sm:max-w-xs truncate flex-1"
                             >
                               {variants.map((v: any, vIdx: number) => (
                                 <option key={vIdx} value={v.name}>
@@ -1029,41 +1029,41 @@ export function ProductDetailPage() {
                           )}
 
                           <div className="flex items-center gap-2 ml-auto">
-                            <span className="font-black text-xs text-zinc-900">
+                            <span className="font-bold text-xs text-white">
                               +{formatPrice(addonPrice)}
                             </span>
 
-                          <button
-                            type="button"
-                            onClick={() => handleToggleAddon(addon)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
-                              isSelected
-                                ? "bg-emerald-700 text-white shadow-2xs"
-                                : "bg-zinc-900 hover:bg-black text-white"
-                            }`}
-                          >
-                            {isSelected ? (
-                              <>
-                                <Check className="w-3.5 h-3.5" />
-                                <span>Added</span>
-                              </>
-                            ) : (
-                              <>
-                                <Plus className="w-3.5 h-3.5" />
-                                <span>Add</span>
-                              </>
-                            )}
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleAddon(addon)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                                isSelected
+                                  ? "bg-emerald-600 text-white"
+                                  : "bg-white/10 hover:bg-white/20 text-white"
+                              }`}
+                            >
+                              {isSelected ? (
+                                <>
+                                  <Check className="w-3.5 h-3.5" />
+                                  <span>Added</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Plus className="w-3.5 h-3.5" />
+                                  <span>Add</span>
+                                </>
+                              )}
+                            </button>
                           </div>
                         </div>
                       </div>
 
                       {/* Dynamic Greeting Message Input Box */}
                       {addon.requiresMessage && isSelected && (
-                        <div className="pt-2.5 border-t border-amber-200/80 animate-in fade-in space-y-1.5">
-                          <label className="block text-[11px] font-bold text-amber-950 flex items-center gap-1.5">
-                            <MessageSquare className="w-3.5 h-3.5 text-amber-700" />
-                            <span>Write A Message On {addon.title}:</span>
+                        <div className="pt-2.5 border-t border-white/5 animate-in fade-in space-y-1.5">
+                          <label className="block text-[11px] font-bold text-amber-300 flex items-center gap-1.5">
+                            <MessageSquare className="w-3.5 h-3.5 text-amber-400" />
+                            <span>Message On {addon.title}:</span>
                           </label>
                           <textarea
                             rows={2}
@@ -1071,13 +1071,10 @@ export function ProductDetailPage() {
                             onChange={(e) => handleUpdateAddonMessage(addon._id, e.target.value)}
                             placeholder={
                               addon.messagePlaceholder ||
-                              "Write your heartfelt personal greeting message here..."
+                              "Write your personal greeting message here..."
                             }
-                            className="w-full px-3 py-2 rounded-lg border border-amber-300 bg-amber-50/30 text-xs font-medium text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 resize-none"
+                            className="w-full px-3 py-2 rounded-lg border border-white/10 bg-[#121216] text-xs font-medium text-white placeholder:text-zinc-500 focus:outline-none focus:border-amber-400 resize-none"
                           />
-                          <p className="text-[10px] text-zinc-500 italic">
-                            This message will be beautifully printed inside the {addon.title.toLowerCase()}!
-                          </p>
                         </div>
                       )}
                     </div>
@@ -1091,10 +1088,10 @@ export function ProductDetailPage() {
               GIFT PERSONALIZATION CARD (With Live Studio Launcher)
              ═════════════════════════════════════════════════════════ */}
           {isPersonalizable && (
-            <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-3.5">
-              <div className="flex items-center justify-between text-amber-950">
+            <div className="p-4 sm:p-5 rounded-2xl bg-[#121216] border border-white/10 space-y-3.5">
+              <div className="flex items-center justify-between text-white">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-600" />
+                  <Sparkles className="w-4 h-4 text-amber-400" />
                   <h3 className="text-xs font-bold uppercase tracking-wider">
                     Laser Engraving Personalization
                   </h3>
@@ -1102,21 +1099,19 @@ export function ProductDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowPersonalizeModal(true)}
-                  className="text-[11px] font-extrabold text-amber-700 hover:text-amber-900 underline flex items-center gap-1 cursor-pointer"
+                  className="text-[11px] font-extrabold text-amber-400 hover:text-amber-300 underline flex items-center gap-1 cursor-pointer"
                 >
-                  <span>Preview Studio</span>
-                  <span>↗</span>
+                  <span>Preview Studio ↗</span>
                 </button>
               </div>
 
-              {/* Quick Inline Input */}
               {/* Multi-zone or Single Input */}
               {product.personalizationZones && product.personalizationZones.length > 1 ? (
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {product.personalizationZones.map((zone: any, zIdx: number) => (
                       <div key={zone.id || zIdx} className="space-y-1">
-                        <label className="block text-[11px] font-bold text-zinc-800">
+                        <label className="block text-[11px] font-bold text-zinc-300">
                           {zone.name} Engraving:
                         </label>
                         <input
@@ -1135,28 +1130,28 @@ export function ProductDetailPage() {
                             })
                           }}
                           placeholder={zone.sampleText || "Your Name"}
-                          className="w-full px-3 py-2 rounded-lg border border-amber-300 bg-white text-xs font-semibold text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600"
+                          className="w-full px-3 py-2 rounded-lg border border-white/10 bg-[#16161C] text-xs font-semibold text-white placeholder:text-zinc-600 focus:outline-none focus:border-amber-400"
                         />
                       </div>
                     ))}
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-zinc-500">
+                    <span className="text-[10px] text-zinc-400">
                       Laser engraved permanently on each item.
                     </span>
                     <button
                       type="button"
                       onClick={() => setShowPersonalizeModal(true)}
-                      className="text-[11px] font-bold text-amber-800 hover:underline flex items-center gap-1 cursor-pointer"
+                      className="text-[11px] font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer"
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                       <span>Studio &amp; Fonts</span>
                     </button>
                   </div>
                 </div>
               ) : (
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-800 mb-1.5">
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
                     {product.personalizationPrompt || "Name or Custom Text to Engrave"}
                   </label>
                   <div className="flex gap-2">
@@ -1165,30 +1160,27 @@ export function ProductDetailPage() {
                       value={customText}
                       onChange={(e) => setCustomText(e.target.value)}
                       placeholder="e.g. Radhe & Krishna"
-                      className="flex-1 px-3.5 py-2.5 rounded-lg border border-amber-300 bg-white text-xs font-medium text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600"
+                      className="flex-1 px-3.5 py-2.5 rounded-lg border border-white/10 bg-[#16161C] text-xs font-medium text-white placeholder:text-zinc-600 focus:outline-none focus:border-amber-400"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPersonalizeModal(true)}
-                      className="px-3.5 py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold text-xs rounded-lg border border-amber-300 transition-colors shrink-0 flex items-center gap-1 cursor-pointer"
+                      className="px-3.5 py-2.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 font-bold text-xs rounded-lg border border-amber-500/30 transition-colors shrink-0 flex items-center gap-1 cursor-pointer"
                       title="Open Live Font & Mockup Studio"
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-amber-700" />
-                      <span>Fonts & Preview</span>
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Studio</span>
                     </button>
                   </div>
-                  <span className="text-[10px] text-zinc-500 block mt-1">
-                    Precision laser engraved permanently on the gift.
-                  </span>
 
                   {/* Live Laser Engraving Preview */}
                   {customText.trim() && (
-                    <div className="mt-2.5 p-3 rounded-xl bg-amber-100/70 border border-amber-300 flex items-center justify-between text-xs animate-in fade-in">
-                      <span className="text-amber-900 font-semibold flex items-center gap-1">
-                        <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                    <div className="mt-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs animate-in fade-in">
+                      <span className="text-amber-300 font-semibold flex items-center gap-1">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                         <span>Engraving Text:</span>
                       </span>
-                      <span className="font-serif font-black text-amber-950 tracking-wider text-sm italic bg-white/95 px-3 py-1 rounded-md border border-amber-300 shadow-2xs">
+                      <span className="font-serif font-black text-amber-300 tracking-wider text-sm italic bg-black/60 px-3 py-1 rounded-md border border-amber-500/40">
                         {customText.trim()}
                       </span>
                     </div>
@@ -1196,15 +1188,15 @@ export function ProductDetailPage() {
                 </div>
               )}
 
-              {/* Logo / Image Upload ONLY IF allowCustomImageUpload */}
+              {/* Logo / Image Upload */}
               {allowCustomImage && (
-                <div className="pt-2 border-t border-amber-200/60">
-                  <label className="block text-xs font-semibold text-zinc-800 mb-1.5">
+                <div className="pt-2 border-t border-white/5">
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
                     Upload Photo / Brand Logo (Optional)
                   </label>
                   <div className="flex items-center gap-3">
-                    <label className="cursor-pointer px-3.5 py-2 rounded-lg bg-white border border-amber-300 text-xs font-semibold text-zinc-800 hover:bg-amber-100/60 transition-colors flex items-center gap-2 shadow-sm">
-                      <Upload className="w-3.5 h-3.5 text-amber-700" />
+                    <label className="cursor-pointer px-3.5 py-2 rounded-lg bg-white/5 border border-white/10 text-xs font-semibold text-zinc-200 hover:bg-white/10 transition-colors flex items-center gap-2">
+                      <Upload className="w-3.5 h-3.5 text-amber-400" />
                       <span>{uploadingImage ? "Uploading..." : "Select File"}</span>
                       <input
                         type="file"
@@ -1214,7 +1206,7 @@ export function ProductDetailPage() {
                       />
                     </label>
                     {customImage && (
-                      <span className="text-xs text-emerald-700 font-semibold flex items-center gap-1">
+                      <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1">
                         <Check className="w-3.5 h-3.5" /> Photo Uploaded
                       </span>
                     )}
@@ -1228,24 +1220,24 @@ export function ProductDetailPage() {
               QUANTITY SELECTOR & TOTAL CALCULATION & CTAS
              ═════════════════════════════════════════════════════════ */}
           <div className="space-y-4 pt-2">
-            <div className="flex items-center justify-between p-3.5 rounded-xl bg-zinc-50 border border-zinc-200">
+            <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#121216] border border-white/10">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-zinc-700">Quantity:</span>
-                <div className="flex items-center border border-zinc-300 rounded-lg bg-white p-0.5">
+                <span className="text-xs font-bold text-zinc-400">Quantity:</span>
+                <div className="flex items-center border border-white/15 rounded-lg bg-black/40 p-0.5">
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="p-1.5 text-zinc-600 hover:text-zinc-950 font-bold transition-colors cursor-pointer"
+                    className="p-1.5 text-zinc-400 hover:text-white font-bold transition-colors cursor-pointer"
                   >
                     <Minus className="w-3.5 h-3.5" />
                   </button>
-                  <span className="px-3 font-black text-xs text-zinc-900 min-w-[28px] text-center">
+                  <span className="px-3 font-black text-xs text-white min-w-[28px] text-center">
                     {quantity}
                   </span>
                   <button
                     type="button"
                     onClick={() => setQuantity(quantity + 1)}
-                    className="p-1.5 text-zinc-600 hover:text-zinc-950 font-bold transition-colors cursor-pointer"
+                    className="p-1.5 text-zinc-400 hover:text-white font-bold transition-colors cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                   </button>
@@ -1254,8 +1246,8 @@ export function ProductDetailPage() {
 
               {/* Dynamic Grand Total */}
               <div className="text-right">
-                <span className="text-[10px] text-zinc-500 font-medium block">Total Payable</span>
-                <span className="text-lg font-black text-zinc-950 font-sans">
+                <span className="text-[10px] text-zinc-400 font-medium block">Total Payable</span>
+                <span className="text-lg font-black text-amber-400 font-sans">
                   {formatPrice(grandTotal)}
                 </span>
               </div>
@@ -1268,8 +1260,8 @@ export function ProductDetailPage() {
                 onClick={handleAddToCart}
                 className={`flex-1 py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer ${
                   added
-                    ? "bg-emerald-700 text-white"
-                    : "bg-zinc-950 hover:bg-black text-white active:scale-98"
+                    ? "bg-emerald-600 text-white"
+                    : "bg-white/10 hover:bg-white/20 border border-white/15 text-white active:scale-98"
                 }`}
               >
                 {added ? (
@@ -1278,7 +1270,7 @@ export function ProductDetailPage() {
                   </>
                 ) : (
                   <>
-                    <ShoppingBag className="w-4 h-4" /> Add to Cart
+                    <ShoppingBag className="w-4 h-4 text-amber-400" /> Add to Cart
                   </>
                 )}
               </button>
@@ -1288,34 +1280,32 @@ export function ProductDetailPage() {
                 onClick={() => toggleWishlist(product)}
                 className={`p-3.5 rounded-xl border transition-all flex items-center justify-center cursor-pointer ${
                   isWishlisted
-                    ? "bg-rose-50 border-rose-200 text-rose-600"
-                    : "bg-white border-zinc-200 hover:border-zinc-400 text-zinc-700 hover:text-rose-600"
+                    ? "bg-red-950/50 border-red-800 text-rose-500"
+                    : "bg-white/5 border-white/10 hover:border-white/20 text-zinc-300 hover:text-rose-500"
                 }`}
                 title={isWishlisted ? "Remove from Wishlist" : "Save to Wishlist"}
               >
                 <Heart
-                  className={`w-5 h-5 ${isWishlisted ? "fill-rose-600 text-rose-600" : ""}`}
+                  className={`w-5 h-5 ${isWishlisted ? "fill-rose-500 text-rose-500" : ""}`}
                 />
               </button>
             </div>
 
-            {/* ═════════════════════════════════════════════════════════
-                PRIMARY ACTIONS: "PERSONALIZE IT" & "BUY NOW"
-               ═════════════════════════════════════════════════════════ */}
+            {/* PRIMARY ACTIONS: "PERSONALIZE IT" & "BUY NOW" */}
             {isPersonalizable ? (
               <div className="flex flex-col gap-2.5">
                 <button
                   type="button"
                   onClick={() => setShowPersonalizeModal(true)}
-                  className="w-full py-3.5 px-6 rounded-2xl font-black text-sm sm:text-base bg-amber-500 hover:bg-amber-600 text-zinc-950 shadow-md active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3.5 px-6 rounded-2xl font-black text-sm sm:text-base bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-500 hover:to-rose-600 text-white shadow-xl shadow-red-900/40 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Sparkles className="w-5 h-5 text-zinc-950" />
+                  <Sparkles className="w-5 h-5 text-amber-300" />
                   <span>Personalize &amp; Preview Studio</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleBuyNow}
-                  className="w-full py-3 px-6 rounded-xl font-bold text-xs sm:text-sm bg-zinc-900 hover:bg-black text-white shadow-xs active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3 px-6 rounded-xl font-bold text-xs sm:text-sm bg-[#16161C] hover:bg-[#1E1E26] border border-white/10 text-white shadow-sm active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Zap className="w-4 h-4 fill-amber-400 text-amber-400" />
                   <span>Buy Now • Fast Checkout</span>
@@ -1325,7 +1315,7 @@ export function ProductDetailPage() {
               <button
                 type="button"
                 onClick={handleBuyNow}
-                className="w-full py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white shadow-md active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-500 hover:to-rose-600 text-white shadow-xl shadow-red-900/40 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Zap className="w-4 h-4 fill-current" />
                 <span>Buy Now • Fast Checkout</span>

@@ -181,29 +181,29 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
   const previewImage = getImageUrl(images[0])
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
       <div
-        className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-zinc-200 overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200"
+        className="w-full max-w-4xl bg-[#111114] text-zinc-100 rounded-3xl shadow-2xl border border-white/10 overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/70">
+        <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-[#15151A]">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-amber-600" />
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-amber-400" />
             </div>
             <div>
-              <h3 className="font-serif font-black text-sm sm:text-base text-zinc-950">
-                Personalize Your Gift
+              <h3 className="font-serif font-black text-sm sm:text-base text-white">
+                Bespoke Inscription Studio
               </h3>
-              <p className="text-[11px] text-zinc-500 truncate max-w-sm">
+              <p className="text-[11px] text-zinc-400 truncate max-w-sm">
                 {product.name}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-zinc-400 hover:text-zinc-800 hover:bg-zinc-100 rounded-full transition-colors cursor-pointer"
+            className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -222,7 +222,7 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
                 onMouseMove={handleMouseMove}
-                className="relative w-full aspect-square rounded-2xl overflow-hidden bg-zinc-100 border border-zinc-200 shadow-sm cursor-crosshair select-none"
+                className="relative w-full aspect-square rounded-2xl overflow-hidden bg-[#0A0A0C] border border-white/10 shadow-xl cursor-crosshair select-none"
               >
                 {/* Scalable Mockup View */}
                 <div
@@ -378,14 +378,14 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
               )}
 
               {/* Dynamic Inputs Per Combo Item */}
-              <div className="p-4 rounded-2xl border border-amber-300/80 bg-amber-50/20 space-y-3.5">
+              <div className="p-4 rounded-2xl border border-white/10 bg-[#141418] space-y-3.5">
                 {comboItems.map((item: string) => {
                   const currentLen = (itemTexts[item] || "").length
                   const remaining = maxCharsPerItem - currentLen
 
                   return (
                     <div key={item} className="space-y-1">
-                      <div className="flex items-center justify-between text-xs font-bold text-zinc-800">
+                      <div className="flex items-center justify-between text-xs font-bold text-zinc-300">
                         <span>{item} :</span>
                         <span className="text-[11px] font-normal text-zinc-500">
                           {remaining} characters left
@@ -397,7 +397,7 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
                         maxLength={maxCharsPerItem}
                         onChange={(e) => handleItemTextChange(item, e.target.value)}
                         placeholder="Enter text here..."
-                        className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs font-bold text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all"
+                        className="w-full px-3 py-2 rounded-xl border border-white/10 bg-[#181820] text-xs font-bold text-white placeholder:text-zinc-600 focus:outline-none focus:border-amber-400 transition-all"
                       />
                     </div>
                   )
@@ -406,8 +406,8 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
                 {/* ═════════════════════════════════════════════════
                     SELECT A FONT BUTTONS (Giftana Style)
                    ═════════════════════════════════════════════════ */}
-                <div className="space-y-2 pt-2 border-t border-amber-200/60">
-                  <label className="block text-xs font-bold text-zinc-800">
+                <div className="space-y-2 pt-2 border-t border-white/5">
+                  <label className="block text-xs font-bold text-zinc-300">
                     Select A Font :
                   </label>
                   <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
@@ -420,8 +420,8 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
                           onClick={() => setSelectedFontId(font.id)}
                           className={`px-2 py-2 rounded-xl border text-xs text-center transition-all cursor-pointer flex items-center justify-center min-h-[38px] ${
                             isSelected
-                              ? "border-amber-600 bg-amber-100/70 text-zinc-950 font-bold shadow-xs ring-1 ring-amber-500"
-                              : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400 hover:bg-zinc-50"
+                              ? "border-amber-400 bg-amber-500/20 text-amber-300 font-bold shadow-md ring-1 ring-amber-400"
+                              : "border-white/10 bg-[#181820] text-zinc-400 hover:border-white/20 hover:text-white"
                           }`}
                         >
                           <span className={`truncate text-xs ${font.cssClass}`}>
@@ -434,16 +434,16 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
                 </div>
 
                 {/* Corporate Logo Contact Notice */}
-                <div className="p-3 rounded-xl bg-zinc-50 border border-zinc-200/80 text-[11px] text-zinc-600 space-y-1">
-                  <p className="font-semibold text-zinc-800">
-                    For company logo on products kindly mail us:
+                <div className="p-3 rounded-xl bg-[#16161C] border border-white/5 text-[11px] text-zinc-400 space-y-1">
+                  <p className="font-semibold text-zinc-300">
+                    For company logo on products kindly contact:
                   </p>
-                  <div className="flex items-center gap-3 pt-0.5 font-medium text-amber-800">
+                  <div className="flex items-center gap-3 pt-0.5 font-medium text-amber-400">
                     <a
                       href="https://wa.me/918591721436?text=Hi%20Printed%20Soul%20Gift%20Team%2C%20I%20want%20company%20logo%20engraving%20for%20order"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:underline flex items-center gap-1 font-bold text-emerald-700"
+                      className="hover:underline flex items-center gap-1 font-bold text-emerald-400"
                     >
                       <MessageCircle className="w-3.5 h-3.5" />
                       <span>+91 85917 21436</span>
@@ -451,7 +451,7 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
                     <span>•</span>
                     <a
                       href="mailto:printedsoul3313@gmail.com"
-                      className="hover:underline text-zinc-700"
+                      className="hover:underline text-zinc-400"
                     >
                       printedsoul3313@gmail.com
                     </a>
@@ -463,22 +463,22 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-zinc-700">Qty:</span>
-                    <div className="flex items-center border border-zinc-300 rounded-lg bg-white p-0.5">
+                    <span className="text-xs font-bold text-zinc-400">Qty:</span>
+                    <div className="flex items-center border border-white/15 rounded-lg bg-black/40 p-0.5">
                       <button
                         type="button"
                         onClick={() => setQty(Math.max(1, qty - 1))}
-                        className="px-2 py-1 text-zinc-600 hover:text-zinc-950 font-bold transition-colors"
+                        className="px-2 py-1 text-zinc-400 hover:text-white font-bold transition-colors"
                       >
                         -
                       </button>
-                      <span className="px-2 font-black text-xs text-zinc-900 min-w-[20px] text-center">
+                      <span className="px-2 font-black text-xs text-white min-w-[20px] text-center">
                         {qty}
                       </span>
                       <button
                         type="button"
                         onClick={() => setQty(qty + 1)}
-                        className="px-2 py-1 text-zinc-600 hover:text-zinc-950 font-bold transition-colors"
+                        className="px-2 py-1 text-zinc-400 hover:text-white font-bold transition-colors"
                       >
                         +
                       </button>
@@ -487,7 +487,7 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
 
                   <div className="text-right">
                     <span className="text-[10px] text-zinc-400 font-medium block">Total</span>
-                    <span className="text-base font-black text-zinc-950 font-sans">
+                    <span className="text-base font-black text-amber-400 font-sans">
                       {formatPrice(unitPrice * qty)}
                     </span>
                   </div>
@@ -499,9 +499,9 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
                     type="button"
                     disabled={isSubmitting}
                     onClick={handleSubmit}
-                    className="w-full py-3.5 px-6 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-98 text-zinc-950 font-extrabold text-sm sm:text-base shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                    className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-500 hover:to-rose-600 active:scale-98 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-red-900/40 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                   >
-                    <Sparkles className="w-4 h-4 text-zinc-950" />
+                    <Sparkles className="w-4 h-4 text-amber-300" />
                     <span>{isSubmitting ? "Adding..." : "Add To Bag With Personalization"}</span>
                   </button>
 
@@ -509,7 +509,7 @@ export const PersonalizationModal: React.FC<PersonalizationModalProps> = ({
                     type="button"
                     disabled={isSubmitting}
                     onClick={handleAddWithoutPersonalization}
-                    className="w-full py-2.5 px-4 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-semibold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-zinc-300 font-semibold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <span>Add Without Personalization (Plain Gift)</span>
                   </button>
